@@ -1,26 +1,37 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://developers.google.com/idx/guides/customize-idx-env
-{ pkgs, ... }: {
-  # Which nixpkgs channel to use.
-  channel = "stable-23.11"; # or "unstable"
-  # Use https://search.nixos.org/packages to find packages
-  packages = [
-    (pkgs.python311.withPackages (ps: with ps; [
-      pip
-    ]))
+
+{ pkgs ? import <nixpkgs> {} }:
+
+pkgs.mkShell {
+  buildInputs = [
+    pkgs.python3
+    pkgs.python3Packages.pandas
+    pkgs.python3Packages.scipy
+    (pkgs.python3Packages.buildPythonPackage rec {
+      pname = "pykrx";
+      version = "1.2.4";
+      format = "pyproject";
+
+      src = pkgs.fetchPypi {
+        inherit pname version;
+        sha256 = "9ff5415ff7d171fe224b8e1f52531e55e3d0b00adf49234f03acd356ebe451b5";
+      };
+
+      nativeBuildInputs = with pkgs.python3Packages; [
+        setuptools
+        wheel
+        setuptools-scm
+      ];
+
+      propagatedBuildInputs = with pkgs.python3Packages; [
+        requests
+        pandas
+        numpy
+        deprecated
+        multipledispatch
+        matplotlib
+      ];
+
+      doCheck = false;
+    })
   ];
-  # Sets environment variables in the workspace
-  env = {};
-  idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
-    extensions = [
-      # "vscodevim.vim"
-      "google.gemini-cli-vscode-ide-companion"
-    ];
-    # Enable previews and customize configuration
-    previews = {
-      enable = true;
-      previews = [];
-    };
-  };
 }

@@ -1,14 +1,45 @@
-<!doctype html>
-<html lang="en">
+
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <link href='/style.css' rel='stylesheet'>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>투자 성과 분석 리포트</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello, world!</h1>
-  <button onclick="console.log('hello');">Press me</button>
-  <script defer type="text/javascript" src="/main.js"></script>
+    <div class="container">
+        <h1>투자 성과 분석 리포트</h1>
+
+        <div class="input-section">
+            <h2>입력 데이터</h2>
+            <form id="analysis-form">
+                <div class="form-group">
+                    <label for="age">나이:</label>
+                    <input type="number" id="age" placeholder="예: 45" required>
+                </div>
+                <div class="form-group">
+                    <label for="tickers">종목 리스트 (쉼표로 구분):</label>
+                    <input type="text" id="tickers" placeholder="예: 458730,441640,441650" required>
+                </div>
+                <div class="form-group">
+                    <label for="investment">전체 투자 금액:</label>
+                    <input type="number" id="investment" placeholder="예: 400000000" required>
+                </div>
+                <div class="form-group">
+                    <label for="weights">투자 비중 (쉼표로 구분):</label>
+                    <input type="text" id="weights" placeholder="예: 0.2,0.3,0.35" required>
+                </div>
+                <button type="submit">분석 실행</button>
+            </form>
+        </div>
+
+        <div class="output-section">
+            <h2>분석 결과</h2>
+            <pre id="report"></pre>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
 </body>
 </html>
