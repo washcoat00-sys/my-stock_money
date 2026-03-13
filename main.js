@@ -18,32 +18,49 @@ document.addEventListener("DOMContentLoaded", function() {
             queryCode = stockCode + '.KS'; // KOSPI 기본
         }
 
-        try {
-            let response = await fetch(`https://query1.finance.yahoo.com/v7/finance/download/${queryCode}?period1=${Math.floor(Date.now() / 1000) - 94608000}&period2=${Math.floor(Date.now() / 1000)}&interval=1d&events=history`);
-            
-            if (!response.ok && /^\d{6}$/.test(stockCode)) {
-                // KOSPI가 아니면 KOSDAQ 시도
-                queryCode = stockCode + '.KQ';
-                response = await fetch(`https://query1.finance.yahoo.com/v7/finance/download/${queryCode}?period1=${Math.floor(Date.now() / 1000) - 94608000}&period2=${Math.floor(Date.now() / 1000)}&interval=1d&events=history`);
-            }
+                try {
 
-            if (!response.ok) {
-                throw new Error("주가 데이터를 가져오는데 실패했습니다. 올바른 한국 주식 종목 코드인지 확인해주세요.");
-            }
-            const data = await response.text();
-            
-            // Basic data parsing and calculations in JavaScript
-            const rows = data.split('\n').slice(1);
-            const prices = rows.map(row => {
-                const columns = row.split(',');
-                return parseFloat(columns[4]); // Adj Close
-            }).filter(price => !isNaN(price));
+                    // Use our local proxy server to avoid CORS/Rate Limit issues
 
-            if (prices.length < 2) {
-                throw new Error("분석을 수행하기에 데이터가 충분하지 않습니다.");
-            }
+                    let response = await fetch(`http://localhost:3000/api/stock/${queryCode}`);
 
-            const cagr = calculateCAGR(prices);
+                    
+
+                    if (!response.ok && /^\d{6}$/.test(stockCode)) {
+
+                        // KOSPI가 아니면 KOSDAQ 시도
+
+                        queryCode = stockCode + '.KQ';
+
+                        response = await fetch(`http://localhost:3000/api/stock/${queryCode}`);
+
+                    }
+
+        
+
+                    if (!response.ok) {
+
+                        throw new Error("주가 데이터를 가져오는데 실패했습니다. 올바른 한국 주식 종목 코드인지 확인해 주세요.");
+
+                    }
+
+                    
+
+                    const data = await response.json();
+
+                    
+
+                    if (!data.prices || data.prices.length < 2) {
+
+                        throw new Error("분석을 수행하기에 데이터가 충분하지 않습니다.");
+
+                    }
+
+        
+
+                    const prices = data.prices;
+
+                    const cagr = calculateCAGR(prices);
             const annVol = calculateAnnVol(prices);
             const sharp = calculateSharpeRatio(cagr, annVol);
             const mdd = calculateMDD(prices);

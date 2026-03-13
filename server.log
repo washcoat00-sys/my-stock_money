@@ -1,0 +1,2 @@
+[yahoo-finance2] Unsupported environment: Requires Node >= 22.0.0, found 20.18.1. (runtime=node, version=20.18.1). Things might break or work unexpectedly!
+Server is running on port 3000
