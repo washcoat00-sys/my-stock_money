@@ -1,53 +1,219 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>월배당 300만원 만들기</title>
+    <title>배당금 계산기 & 월배당 포트폴리오</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
             margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #1a73e8;
             text-align: center;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+            align-items: center;
+        }
+        .input-group label {
+            width: 30px;
+            font-weight: bold;
+            color: #666;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
         }
         button {
-            margin: 10px 0;
-            padding: 10px;
+            width: 100%;
+            padding: 15px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 5px;
             font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #1557b0;
+        }
+        .secondary-btn {
+            background-color: #6c757d;
+            margin-top: 10px;
+        }
+        .secondary-btn:hover {
+            background-color: #5a6268;
         }
         table {
-            margin: 20px auto;
+            width: 100%;
             border-collapse: collapse;
-            width: 80%;
+            margin-top: 20px;
         }
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: center;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #f1f3f4;
+        }
+        .result-summary {
+            background: #e8f0fe;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .stock-list-info {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>월배당 300만원 포트폴리오</h1>
-        <p>월 300만원의 배당금을 받기 위한 추천 포트폴리오입니다.</p>
-        <button onclick="showPortfolio()">추천 종목 확인</button>
-        <div id="result"></div>
+        <div class="section">
+            <h1>📊 배당금 계산기 (최대 10종목)</h1>
+            <p style="text-align: center;">종목명(또는 코드)과 수량을 입력하세요.</p>
+            
+            <div id="calculator-inputs">
+                <!-- Inputs will be generated here -->
+            </div>
+
+            <button onclick="calculateUserDividends()">종합 배당금 계산하기</button>
+            <div id="calc-result"></div>
+            <p class="stock-list-info">* 지원 종목: 삼성전자, SK하이닉스, 맥쿼리인프라, TIGER 미국배당다우존스, SOL 미국배당다우존스, KODEX 미국배당프리미엄액티브, 리츠 등 (그 외 종목은 0원으로 계산됨)</p>
+        </div>
+
+        <div class="section">
+            <h2>🏆 월배당 300만원 추천 포트폴리오</h2>
+            <button class="secondary-btn" onclick="showPortfolio()">추천 포트폴리오 보기</button>
+            <div id="portfolio-result"></div>
+        </div>
     </div>
 
     <script>
+        // Mock Data for Dividends
+        const stockData = {
+            "삼성전자": { name: "삼성전자", code: "005930", annualDividend: 1444 },
+            "삼성전자우": { name: "삼성전자우", code: "005935", annualDividend: 1445 },
+            "SK하이닉스": { name: "SK하이닉스", code: "000660", annualDividend: 1200 },
+            "맥쿼리인프라": { name: "맥쿼리인프라", code: "088980", annualDividend: 770 },
+            "TIGER 미국배당다우존스": { name: "TIGER 미국배당다우존스", code: "451150", annualDividend: 420 }, // 월 약 35원
+            "SOL 미국배당다우존스": { name: "SOL 미국배당다우존스", code: "446750", annualDividend: 400 }, // 월 약 33원
+            "KODEX 미국배당프리미엄액티브": { name: "KODEX 미국배당프리미엄액티브", code: "442450", annualDividend: 660 }, // 월 약 55원
+            "TIGER 미국테크TOP10+10%프리미엄": { name: "TIGER 미국테크TOP10+10%프리미엄", code: "474910", annualDividend: 1200 }, // 월 약 100원
+            "TIGER 리츠부동산인프라": { name: "TIGER 리츠부동산인프라", code: "329200", annualDividend: 360 }, // 월 약 30원
+            "신한지주": { name: "신한지주", code: "055550", annualDividend: 2100 },
+            "KB금융": { name: "KB금융", code: "105560", annualDividend: 3000 },
+            "현대차": { name: "현대차", code: "005380", annualDividend: 11400 },
+            "005930": { name: "삼성전자", code: "005930", annualDividend: 1444 },
+            "088980": { name: "맥쿼리인프라", code: "088980", annualDividend: 770 },
+            "451150": { name: "TIGER 미국배당다우존스", code: "451150", annualDividend: 420 }
+        };
+
+        // Initialize Inputs
+        const inputContainer = document.getElementById('calculator-inputs');
+        for (let i = 1; i <= 10; i++) {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <label>${i}</label>
+                <input type="text" id="name-${i}" placeholder="종목명 또는 코드">
+                <input type="number" id="qty-${i}" placeholder="수량 (주)">
+            `;
+            inputContainer.appendChild(div);
+        }
+
+        function calculateUserDividends() {
+            let totalAnnual = 0;
+            let results = [];
+
+            for (let i = 1; i <= 10; i++) {
+                const name = document.getElementById(`name-${i}`).value.trim();
+                const qty = parseInt(document.getElementById(`qty-${i}`).value) || 0;
+
+                if (name && qty > 0) {
+                    const data = stockData[name] || { name: name, annualDividend: 0 };
+                    const annual = data.annualDividend * qty;
+                    totalAnnual += annual;
+                    results.push({
+                        name: data.name,
+                        qty: qty,
+                        unitDividend: data.annualDividend,
+                        total: annual
+                    });
+                }
+            }
+
+            if (results.length === 0) {
+                alert("종목과 수량을 입력해주세요.");
+                return;
+            }
+
+            let resultHTML = `
+                <div class="result-summary">
+                    <h3>내 포트폴리오 배당금 결과</h3>
+                    <p><strong>연간 총 배당금: ${totalAnnual.toLocaleString()}원</strong></p>
+                    <p><strong>월평균 배당금: ${Math.floor(totalAnnual / 12).toLocaleString()}원</strong></p>
+                </div>
+                <table>
+                    <tr>
+                        <th>종목명</th>
+                        <th>보유수량</th>
+                        <th>주당 연배당금</th>
+                        <th>연간 합계</th>
+                    </tr>
+            `;
+
+            results.forEach(res => {
+                resultHTML += `
+                    <tr>
+                        <td>${res.name}</td>
+                        <td>${res.qty.toLocaleString()}주</td>
+                        <td>${res.unitDividend.toLocaleString()}원</td>
+                        <td>${res.total.toLocaleString()}원</td>
+                    </tr>
+                `;
+            });
+            resultHTML += `</table>`;
+            document.getElementById('calc-result').innerHTML = resultHTML;
+        }
+
         function showPortfolio() {
             const stocks = [
                 { name: "TIGER 미국배당다우존스", dividendPerMonth: 35, shareCount: 30000, price: 11500, yield: 3.6 },
@@ -65,63 +231,31 @@
             });
 
             let resultHTML = `
-                <h2>월배당 300만원 포트폴리오 결과 (ALL 월배당 ETF)</h2>
-                <div style="background: #eef7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bce0fd;">
+                <div class="result-summary" style="background: #f0fdf4;">
                     <p><strong>총 투자 필요 자산: 약 ${totalRequiredCapital.toLocaleString()}원</strong></p>
                     <p><strong>예상 월 합계 배당금: 약 ${totalMonthlyDividend.toLocaleString()}원</strong></p>
-                    <p>예상 연간 합계 배당금: 약 ${(totalMonthlyDividend * 12).toLocaleString()}원</p>
                 </div>
                 <table>
                     <tr>
-                        <th>종목명 (국내상장)</th>
+                        <th>종목명</th>
                         <th>추천 주식수</th>
-                        <th>현재가(추정)</th>
-                        <th>주당 월 배당금</th>
+                        <th>주당 월배당</th>
                         <th>월 배당금</th>
-                        <th>연 배당률</th>
                     </tr>
             `;
 
             stocks.forEach(stock => {
-                const monthlyDividend = stock.dividendPerMonth * stock.shareCount;
                 resultHTML += `
                     <tr>
                         <td>${stock.name}</td>
                         <td>${stock.shareCount.toLocaleString()}주</td>
-                        <td>${stock.price.toLocaleString()}원</td>
                         <td>${stock.dividendPerMonth.toLocaleString()}원</td>
-                        <td>${monthlyDividend.toLocaleString()}원</td>
-                        <td>${stock.yield}%</td>
+                        <td>${(stock.dividendPerMonth * stock.shareCount).toLocaleString()}원</td>
                     </tr>
                 `;
             });
-
             resultHTML += "</table>";
-
-            resultHTML += `
-                <div style="margin-top: 30px; text-align: left; display: inline-block; width: 90%; max-width: 800px;">
-                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 300px; background: #f0fff4; padding: 20px; border-radius: 10px; border: 1px solid #c6f6d5;">
-                            <h3 style="color: #2f855a; margin-top: 0;">✅ 장점 (Pros)</h3>
-                            <ul style="padding-left: 20px; line-height: 1.6;">
-                                <li><strong>안정적인 현금 흐름</strong>: 매월 정해진 날짜에 배당금이 입금되어 생활비로 활용하거나 즉시 재투자가 가능합니다.</li>
-                                <li><strong>절세 혜택 활용</strong>: ISA 계좌나 연금저축/IRP 계좌를 통해 투자할 경우 배당소득세 절세 및 과세 이연 효과를 극대화할 수 있습니다.</li>
-                                <li><strong>접근성 및 편의성</strong>: 국내 시장 운영 시간에 원화로 즉시 거래가 가능하며, 환전 수수료가 발생하지 않습니다.</li>
-                            </ul>
-                        </div>
-                        <div style="flex: 1; min-width: 300px; background: #fff5f5; padding: 20px; border-radius: 10px; border: 1px solid #fed7d7;">
-                            <h3 style="color: #c53030; margin-top: 0;">⚠️ 단점 (Cons)</h3>
-                            <ul style="padding-left: 20px; line-height: 1.6;">
-                                <li><strong>배당소득세 부담</strong>: 일반 계좌 이용 시 배당금의 15.4%가 원천징수되며, 연간 2,000만 원 초과 시 금융소득종합과세 대상이 될 수 있습니다.</li>
-                                <li><strong>자산 성장 정체</strong>: 배당에 집중하는 특성상 성장주 위주의 포트폴리오보다 원금의 가치 상승 속도가 느릴 수 있습니다.</li>
-                                <li><strong>상방 제한(커버드콜)</strong>: 포트폴리오에 포함된 커버드콜 ETF는 하락장에서 방어력은 좋으나, 강력한 상승장에서 수익률이 제한됩니다.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            document.getElementById("result").innerHTML = resultHTML;
+            document.getElementById("portfolio-result").innerHTML = resultHTML;
         }
     </script>
 </body>
