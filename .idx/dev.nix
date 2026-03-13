@@ -1,37 +1,32 @@
+{ pkgs, ... }:
+{
+  # The following specifies a custom channel for nixpkgs.
+  nixpkgs = "https://nixos.org/channels/nixos-23.11/nixexprs.tar.xz";
 
-{ pkgs ? import <nixpkgs> {} }:
-
-pkgs.mkShell {
-  buildInputs = [
+  # The following installs packages into your workspace.
+  packages = [
     pkgs.python3
-    pkgs.python3Packages.pandas
-    pkgs.python3Packages.scipy
-    (pkgs.python3Packages.buildPythonPackage rec {
-      pname = "pykrx";
-      version = "1.2.4";
-      format = "pyproject";
-
-      src = pkgs.fetchPypi {
-        inherit pname version;
-        sha256 = "9ff5415ff7d171fe224b8e1f52531e55e3d0b00adf49234f03acd356ebe451b5";
-      };
-
-      nativeBuildInputs = with pkgs.python3Packages; [
-        setuptools
-        wheel
-        setuptools-scm
-      ];
-
-      propagatedBuildInputs = with pkgs.python3Packages; [
-        requests
-        pandas
-        numpy
-        deprecated
-        multipledispatch
-        matplotlib
-      ];
-
-      doCheck = false;
-    })
+    pkgs.zlib
+    pkgs.stdenv
   ];
+
+  # The following starts a process when your workspace starts.
+  # processes = {
+  #   my-server = {
+  #     command = "npm run dev";
+  #     autostart = true;
+  #   };
+  # };
+
+  # The following opens a port in your workspace.
+  # ports = {
+  #   # "my-port" is a friendly name for the port.
+  #   my-port = 3000;
+  # };
+
+  # The following previews a file when your workspace starts.
+  # preview = {
+  #   # "my-file.html" is a file in your workspace.
+  #   file = "my-file.html";
+  # };
 }
