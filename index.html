@@ -36,6 +36,25 @@
         <label for="period">기간 (년):</label>
         <input type="number" id="period" placeholder="기간을 입력하세요">
         <br>
+        <h2>현재 자산 수준</h2>
+        <label for="cash">현금성 자산:</label>
+        <input type="number" id="cash" placeholder="현금성 자산을 입력하세요">
+        <br>
+        <label for="stocks">주식:</label>
+        <input type="number" id="stocks" placeholder="주식 자산을 입력하세요">
+        <br>
+        <label for="bonds">채권:</label>
+        <input type="number" id="bonds" placeholder="채권 자산을 입력하세요">
+        <br>
+        <label for="liabilities">부채:</label>
+        <input type="number" id="liabilities" placeholder="부채를 입력하세요">
+        <br>
+        <label for="realEstate">부동산:</label>
+        <input type="number" id="realEstate" placeholder="부동산 자산을 입력하세요">
+        <br>
+        <label for="deposits">예금:</label>
+        <input type="number" id="deposits" placeholder="예금 자산을 입력하세요">
+        <br>
         <button onclick="calculate()">최적 방안 확인</button>
         <div id="result"></div>
     </div>
@@ -44,6 +63,16 @@
         function calculate() {
             const age = parseInt(document.getElementById("age").value);
             const period = parseInt(document.getElementById("period").value);
+            const cash = parseInt(document.getElementById("cash").value) || 0;
+            const stocks = parseInt(document.getElementById("stocks").value) || 0;
+            const bonds = parseInt(document.getElementById("bonds").value) || 0;
+            const liabilities = parseInt(document.getElementById("liabilities").value) || 0;
+            const realEstate = parseInt(document.getElementById("realEstate").value) || 0;
+            const deposits = parseInt(document.getElementById("deposits").value) || 0;
+
+            const totalAssets = cash + stocks + bonds + realEstate + deposits;
+            const netWorth = totalAssets - liabilities;
+
             const targetAmount = 500000000;
 
             if (isNaN(age) || isNaN(period)) {
@@ -51,7 +80,8 @@
                 return;
             }
 
-            const monthlySavings = targetAmount / (period * 12);
+            const remainingAmount = targetAmount - netWorth;
+            const monthlySavings = remainingAmount / (period * 12);
 
             let suggestion = "";
             if (monthlySavings > 5000000) {
@@ -63,6 +93,7 @@
             }
 
             const resultText = `
+                <p>현재 순자산은 ${netWorth.toLocaleString()}원 입니다.</p>
                 <p>목표 기간 내 5억을 만들기 위해 매월 약 ${Math.round(monthlySavings).toLocaleString()}원을 저축해야 합니다.</p>
                 <p><strong>제안:</strong> ${suggestion}</p>
             `;
