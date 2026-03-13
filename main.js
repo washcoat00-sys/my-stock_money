@@ -5,18 +5,30 @@ document.addEventListener("DOMContentLoaded", function() {
     const resultsDiv = document.getElementById("results");
 
     analyzeButton.addEventListener("click", async function() {
-        const stockCode = stockInput.value.toUpperCase();
+        const stockCode = stockInput.value.toUpperCase().trim();
         if (!stockCode) {
-            resultsDiv.innerHTML = "<p>Please enter a stock code.</p>";
+            resultsDiv.innerHTML = "<p>종목 코드를 입력해주세요.</p>";
             return;
         }
 
-        resultsDiv.innerHTML = "<p>Analyzing...</p>";
+        resultsDiv.innerHTML = "<p>분석 중...</p>";
+
+        let queryCode = stockCode;
+        if (/^\d{6}$/.test(stockCode)) {
+            queryCode = stockCode + '.KS'; // KOSPI 기본
+        }
 
         try {
-            const response = await fetch(`https://query1.finance.yahoo.com/v7/finance/download/${stockCode}?period1=${Math.floor(Date.now() / 1000) - 94608000}&period2=${Math.floor(Date.now() / 1000)}&interval=1d&events=history`);
+            let response = await fetch(`https://query1.finance.yahoo.com/v7/finance/download/${queryCode}?period1=${Math.floor(Date.now() / 1000) - 94608000}&period2=${Math.floor(Date.now() / 1000)}&interval=1d&events=history`);
+            
+            if (!response.ok && /^\d{6}$/.test(stockCode)) {
+                // KOSPI가 아니면 KOSDAQ 시도
+                queryCode = stockCode + '.KQ';
+                response = await fetch(`https://query1.finance.yahoo.com/v7/finance/download/${queryCode}?period1=${Math.floor(Date.now() / 1000) - 94608000}&period2=${Math.floor(Date.now() / 1000)}&interval=1d&events=history`);
+            }
+
             if (!response.ok) {
-                throw new Error("Failed to fetch stock data. Please check the stock code.");
+                throw new Error("주가 데이터를 가져오는데 실패했습니다. 올바른 한국 주식 종목 코드인지 확인해주세요.");
             }
             const data = await response.text();
             
@@ -28,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }).filter(price => !isNaN(price));
 
             if (prices.length < 2) {
-                throw new Error("Not enough data to perform analysis.");
+                throw new Error("분석을 수행하기에 데이터가 충분하지 않습니다.");
             }
 
             const cagr = calculateCAGR(prices);
@@ -37,15 +49,15 @@ document.addEventListener("DOMContentLoaded", function() {
             const mdd = calculateMDD(prices);
 
             resultsDiv.innerHTML = `
-                <h3>${stockCode} Analysis (3 Years)</h3>
-                <p>CAGR: ${cagr.toFixed(2)}%</p>
-                <p>Annualized Volatility: ${annVol.toFixed(2)}%</p>
-                <p>Sharpe Ratio: ${sharp.toFixed(2)}</p>
-                <p>Maximum Drawdown (MDD): ${mdd.toFixed(2)}%</p>
+                <h3>${stockCode} 분석 결과 (최근 3년)</h3>
+                <p>CAGR (연평균 성장률): ${cagr.toFixed(2)}%</p>
+                <p>연간 변동성: ${annVol.toFixed(2)}%</p>
+                <p>샤프 지수: ${sharp.toFixed(2)}</p>
+                <p>최대 낙폭 (MDD): ${mdd.toFixed(2)}%</p>
             `;
 
         } catch (error) {
-            resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            resultsDiv.innerHTML = `<p>오류: ${error.message}</p>`;
         }
     });
 
