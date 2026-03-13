@@ -50,48 +50,47 @@
     <script>
         function showPortfolio() {
             const stocks = [
-                { name: "삼성전자 우선주", dividendPerShare: 1500, shareCount: 5000, price: 50000, yield: 3.0 },
-                { name: "맥쿼리인프라", dividendPerShare: 800, shareCount: 10000, price: 12800, yield: 6.25 },
-                { name: "TIGER 미국배당다우존스", dividendPerShare: 400, shareCount: 20000, price: 11500, yield: 3.48 },
-                { name: "SK텔레콤", dividendPerShare: 3500, shareCount: 1500, price: 56000, yield: 6.25 },
-                { name: "신한지주", dividendPerShare: 2100, shareCount: 3500, price: 56000, yield: 3.75 },
+                { name: "TIGER 미국배당다우존스", dividendPerMonth: 35, shareCount: 30000, price: 11500, yield: 3.6 },
+                { name: "TIGER 미국테크TOP10+10%프리미엄", dividendPerMonth: 100, shareCount: 10000, price: 12000, yield: 10.0 },
+                { name: "TIGER 리츠부동산인프라", dividendPerMonth: 30, shareCount: 20000, price: 4500, yield: 8.0 },
+                { name: "SOL 미국배당다우존스", dividendPerMonth: 33, shareCount: 15000, price: 11000, yield: 3.6 },
+                { name: "KODEX 미국배당프리미엄액티브", dividendPerMonth: 55, shareCount: 10000, price: 10500, yield: 6.3 },
             ];
 
-            let totalAnnualDividend = 0;
+            let totalMonthlyDividend = 0;
             let totalRequiredCapital = 0;
             stocks.forEach(stock => {
-                totalAnnualDividend += stock.dividendPerShare * stock.shareCount;
+                totalMonthlyDividend += stock.dividendPerMonth * stock.shareCount;
                 totalRequiredCapital += stock.price * stock.shareCount;
             });
 
             let resultHTML = `
-                <h2>추천 포트폴리오 결과</h2>
-                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee;">
+                <h2>월배당 300만원 포트폴리오 결과 (ALL 월배당 ETF)</h2>
+                <div style="background: #eef7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bce0fd;">
                     <p><strong>총 투자 필요 자산: 약 ${totalRequiredCapital.toLocaleString()}원</strong></p>
-                    <p>총 연간 배당금: 약 ${totalAnnualDividend.toLocaleString()}원</p>
-                    <p><strong>월 평균 배당금: 약 ${(Math.floor(totalAnnualDividend / 12)).toLocaleString()}원</strong></p>
+                    <p><strong>예상 월 합계 배당금: 약 ${totalMonthlyDividend.toLocaleString()}원</strong></p>
+                    <p>예상 연간 합계 배당금: 약 ${(totalMonthlyDividend * 12).toLocaleString()}원</p>
                 </div>
                 <table>
                     <tr>
-                        <th>종목명</th>
+                        <th>종목명 (국내상장)</th>
                         <th>추천 주식수</th>
-                        <th>현재가</th>
+                        <th>현재가(추정)</th>
+                        <th>주당 월 배당금</th>
                         <th>월 배당금</th>
-                        <th>연간 배당금</th>
-                        <th>배당률</th>
+                        <th>연 배당률</th>
                     </tr>
             `;
 
             stocks.forEach(stock => {
-                const annualDividend = stock.dividendPerShare * stock.shareCount;
-                const monthlyDividend = Math.floor(annualDividend / 12);
+                const monthlyDividend = stock.dividendPerMonth * stock.shareCount;
                 resultHTML += `
                     <tr>
                         <td>${stock.name}</td>
                         <td>${stock.shareCount.toLocaleString()}주</td>
                         <td>${stock.price.toLocaleString()}원</td>
+                        <td>${stock.dividendPerMonth.toLocaleString()}원</td>
                         <td>${monthlyDividend.toLocaleString()}원</td>
-                        <td>${annualDividend.toLocaleString()}원</td>
                         <td>${stock.yield}%</td>
                     </tr>
                 `;
