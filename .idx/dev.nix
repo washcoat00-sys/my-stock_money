@@ -1,14 +1,14 @@
 { pkgs, ... }:
 {
   # The following specifies a custom channel for nixpkgs.
-  nixpkgs = "https://nixos.org/channels/nixos-23.11/nixexprs.tar.xz";
+  # nixpkgs = "https://nixos.org/channels/nixos-23.11/nixexprs.tar.xz";
 
   # The following installs packages into your workspace.
-  packages = [
-    pkgs.python3
-    pkgs.zlib
-    pkgs.stdenv
-  ];
+  # packages = [
+  #   pkgs.python3
+  #   pkgs.zlib
+  #   pkgs.stdenv
+  # ];
 
   # The following starts a process when your workspace starts.
   # processes = {
