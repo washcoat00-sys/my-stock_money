@@ -133,27 +133,43 @@
             "삼성전자우": { name: "삼성전자우", code: "005935", annualDividend: 1445 },
             "SK하이닉스": { name: "SK하이닉스", code: "000660", annualDividend: 1200 },
             "맥쿼리인프라": { name: "맥쿼리인프라", code: "088980", annualDividend: 770 },
-            "TIGER 미국배당다우존스": { name: "TIGER 미국배당다우존스", code: "451150", annualDividend: 420 }, // 월 약 35원
-            "SOL 미국배당다우존스": { name: "SOL 미국배당다우존스", code: "446750", annualDividend: 400 }, // 월 약 33원
-            "KODEX 미국배당프리미엄액티브": { name: "KODEX 미국배당프리미엄액티브", code: "442450", annualDividend: 660 }, // 월 약 55원
-            "TIGER 미국테크TOP10+10%프리미엄": { name: "TIGER 미국테크TOP10+10%프리미엄", code: "474910", annualDividend: 1200 }, // 월 약 100원
-            "TIGER 리츠부동산인프라": { name: "TIGER 리츠부동산인프라", code: "329200", annualDividend: 360 }, // 월 약 30원
+            "TIGER 미국배당다우존스": { name: "TIGER 미국배당다우존스", code: "451150", annualDividend: 420 },
+            "SOL 미국배당다우존스": { name: "SOL 미국배당다우존스", code: "446750", annualDividend: 400 },
+            "KODEX 미국배당프리미엄액티브": { name: "KODEX 미국배당프리미엄액티브", code: "442450", annualDividend: 660 },
+            "TIGER 미국테크TOP10+10%프리미엄": { name: "TIGER 미국테크TOP10+10%프리미엄", code: "474910", annualDividend: 1200 },
+            "TIGER 리츠부동산인프라": { name: "TIGER 리츠부동산인프라", code: "329200", annualDividend: 360 },
             "신한지주": { name: "신한지주", code: "055550", annualDividend: 2100 },
             "KB금융": { name: "KB금융", code: "105560", annualDividend: 3000 },
             "현대차": { name: "현대차", code: "005380", annualDividend: 11400 },
-            "005930": { name: "삼성전자", code: "005930", annualDividend: 1444 },
-            "088980": { name: "맥쿼리인프라", code: "088980", annualDividend: 770 },
-            "451150": { name: "TIGER 미국배당다우존스", code: "451150", annualDividend: 420 }
+            "ESR켄달스퀘어리츠": { name: "ESR켄달스퀘어리츠", code: "365550", annualDividend: 270 },
+            "SK리츠": { name: "SK리츠", code: "395400", annualDividend: 260 },
+            "제이알글로벌리츠": { name: "제이알글로벌리츠", code: "357250", annualDividend: 380 },
+            "KODEX CD금리액티브(합성)": { name: "KODEX CD금리액티브(합성)", code: "459580", annualDividend: 30000 },
+            "KIWOOM 미국고배당&AI테크": { name: "KIWOOM 미국고배당&AI테크", code: "492040", annualDividend: 384 },
+            "KODEX 미국성장커버드콜액티브": { name: "KODEX 미국성장커버드콜액티브", code: "494050", annualDividend: 1140 },
+            "SOL 코리아고배당": { name: "SOL 코리아고배당", code: "484150", annualDividend: 720 },
+            "TIGER 미국배당다우존스타겟데일리커버드콜": { name: "TIGER 미국배당다우존스타겟데일리커버드콜", code: "502470", annualDividend: 1200 },
+            "KODEX 미국배당커버드콜액티브": { name: "KODEX 미국배당커버드콜액티브", code: "494060", annualDividend: 1176 }
         };
 
-        // Initialize Inputs
+        // Initialize Inputs with Dropdowns
         const inputContainer = document.getElementById('calculator-inputs');
+        const stockOptions = Object.keys(stockData).filter(key => isNaN(key)); // Only use names, not codes
+
         for (let i = 1; i <= 10; i++) {
             const div = document.createElement('div');
             div.className = 'input-group';
+            
+            let optionsHTML = `<option value="">종목 선택</option>`;
+            stockOptions.forEach(stock => {
+                optionsHTML += `<option value="${stock}">${stock}</option>`;
+            });
+
             div.innerHTML = `
                 <label>${i}</label>
-                <input type="text" id="name-${i}" placeholder="종목명 또는 코드">
+                <select id="name-${i}" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; flex: 1; margin-right: 5px;">
+                    ${optionsHTML}
+                </select>
                 <input type="number" id="qty-${i}" placeholder="수량 (주)">
             `;
             inputContainer.appendChild(div);
@@ -164,11 +180,11 @@
             let results = [];
 
             for (let i = 1; i <= 10; i++) {
-                const name = document.getElementById(`name-${i}`).value.trim();
+                const name = document.getElementById(`name-${i}`).value;
                 const qty = parseInt(document.getElementById(`qty-${i}`).value) || 0;
 
                 if (name && qty > 0) {
-                    const data = stockData[name] || { name: name, annualDividend: 0 };
+                    const data = stockData[name];
                     const annual = data.annualDividend * qty;
                     totalAnnual += annual;
                     results.push({
