@@ -20,86 +20,73 @@
             border: 1px solid #ccc;
             border-radius: 10px;
         }
-        input, button {
+        button {
             margin: 10px 0;
             padding: 10px;
             font-size: 16px;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>월배당 300만원 만들기</h1>
-        <label for="age">나이:</label>
-        <input type="number" id="age" placeholder="나이를 입력하세요">
-        <br>
-        <h2>현재 자산 수준</h2>
-        <label for="cash">현금성 자산:</label>
-        <input type="number" id="cash" placeholder="현금성 자산을 입력하세요">
-        <br>
-        <label for="stocks">주식:</label>
-        <input type="number" id="stocks" placeholder="주식 자산을 입력하세요">
-        <br>
-        <label for="bonds">채권:</label>
-        <input type="number" id="bonds" placeholder="채권 자산을 입력하세요">
-        <br>
-        <label for="liabilities">부채:</label>
-        <input type="number" id="liabilities" placeholder="부채를 입력하세요">
-        <br>
-        <label for="realEstate">부동산:</label>
-        <input type="number" id="realEstate" placeholder="부동산 자산을 입력하세요">
-        <br>
-        <label for="deposits">예금:</label>
-        <input type="number" id="deposits" placeholder="예금 자산을 입력하세요">
-        <br>
-        <button onclick="calculate()">최적 포트폴리오 확인</button>
+        <h1>월배당 300만원 포트폴리오</h1>
+        <p>월 300만원의 배당금을 받기 위한 추천 포트폴리오입니다.</p>
+        <button onclick="showPortfolio()">추천 종목 확인</button>
         <div id="result"></div>
     </div>
 
     <script>
-        function calculate() {
-            const age = parseInt(document.getElementById("age").value);
-            const cash = parseInt(document.getElementById("cash").value) || 0;
-            const stocks = parseInt(document.getElementById("stocks").value) || 0;
-            const bonds = parseInt(document.getElementById("bonds").value) || 0;
-            const liabilities = parseInt(document.getElementById("liabilities").value) || 0;
-            const realEstate = parseInt(document.getElementById("realEstate").value) || 0;
-            const deposits = parseInt(document.getElementById("deposits").value) || 0;
+        function showPortfolio() {
+            const stocks = [
+                { name: "삼성전자 우선주", dividendPerShare: 1444, shareCount: 4986 },
+                { name: "맥쿼리인프라", dividendPerShare: 770, shareCount: 9350 },
+                { name: "리얼티 인컴 (O)", dividendPerShare: 4000, shareCount: 1800 },
+                { name: "코카-콜라 (KO)", dividendPerShare: 2500, shareCount: 2880 },
+                { name: "신한지주", dividendPerShare: 2100, shareCount: 3428 },
+            ];
 
-            const totalAssets = cash + stocks + bonds + realEstate + deposits;
-            const netWorth = totalAssets - liabilities;
+            let totalAnnualDividend = 0;
+            stocks.forEach(stock => {
+                totalAnnualDividend += stock.dividendPerShare * stock.shareCount;
+            });
 
-            const targetMonthlyDividend = 3000000;
-            const annualDividend = targetMonthlyDividend * 12;
-            const assumedYield = 0.04; // 4% dividend yield
-            const targetPrincipal = annualDividend / assumedYield;
-
-            if (isNaN(age)) {
-                document.getElementById("result").innerText = "나이를 올바르게 입력해주세요.";
-                return;
-            }
-
-            const remainingPrincipal = targetPrincipal - netWorth;
-
-            let suggestion = "";
-            if (netWorth >= targetPrincipal) {
-                suggestion = "이미 목표를 달성하셨습니다! 현재 포트폴리오를 유지하며 안정적인 배당 수익을 즐기세요.";
-            } else if (age < 40) {
-                suggestion = "아직 투자 기간이 많이 남았습니다. 성장주와 배당주를 혼합한 포트폴리오로 자산을 증식시키면서 점차 배당주 비중을 늘려가는 전략을 추천합니다.";
-            } else if (age < 50) {
-                suggestion = "안정적인 배당주 위주로 포트폴리오를 구성하는 것이 중요합니다. 고배당 ETF나 리츠(REITs) 투자를 고려해보세요.";
-            } else {
-                suggestion = "은퇴가 가까운 시기이므로, 원금 손실 위험이 적은 고정 배당 우선주나 우량 채권 비중을 높여 안정적인 현금 흐름을 확보하는 데 집중해야 합니다.";
-            }
-
-            const resultText = `
-                <p>현재 순자산은 ${netWorth.toLocaleString()}원 입니다.</p>
-                <p>월배당 300만원을 받기 위해 필요한 총 자산은 약 ${targetPrincipal.toLocaleString()}원 입니다. (연 4% 배당률 가정)</p>
-                <p>앞으로 ${remainingPrincipal.toLocaleString()}원을 더 모아야 합니다.</p>
-                <p><strong>포트폴리오 제안:</strong> ${suggestion}</p>
+            let resultHTML = `
+                <h2>추천 포트폴리오</h2>
+                <p>총 연간 배당금: 약 ${totalAnnualDividend.toLocaleString()}원 (월 약 ${(totalAnnualDividend / 12).toLocaleString()}원)</p>
+                <table>
+                    <tr>
+                        <th>종목명</th>
+                        <th>추천 주식수</th>
+                        <th>연간 배당금</th>
+                    </tr>
             `;
 
-            document.getElementById("result").innerHTML = resultText;
+            stocks.forEach(stock => {
+                const annualDividend = stock.dividendPerShare * stock.shareCount;
+                resultHTML += `
+                    <tr>
+                        <td>${stock.name}</td>
+                        <td>${stock.shareCount.toLocaleString()}주</td>
+                        <td>${annualDividend.toLocaleString()}원</td>
+                    </tr>
+                `;
+            });
+
+            resultHTML += "</table>";
+
+            document.getElementById("result").innerHTML = resultHTML;
         }
     </script>
 </body>
