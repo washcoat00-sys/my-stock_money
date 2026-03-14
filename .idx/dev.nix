@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 {
   # The following specifies a custom channel for nixpkgs.
   # nixpkgs = "https://nixos.org/channels/nixos-23.11/nixexprs.tar.xz";
