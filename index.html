@@ -156,6 +156,38 @@
         .remove-btn:hover {
             background: #ff9d97;
         }
+        .manage-section {
+            background: #f0faff;
+            padding: 20px;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+        .stock-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .stock-tag {
+            background: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            font-size: 14px;
+        }
+        .stock-tag .del-icon {
+            color: #ffb7b2;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .add-stock-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
     </style>
 </head>
 <body>
@@ -174,7 +206,21 @@
             </div>
 
             <div id="calc-result"></div>
-            <p class="stock-list-info">* 지원 종목: 삼성전자, SK하이닉스, 맥쿼리인프라, 미국배당 다우존스 시리즈, 커버드콜, 리츠 등</p>
+        </div>
+
+        <div class="section manage-section">
+            <h2 style="margin-bottom: 10px; font-size: 1.5em; color: #b2e2f2;">⚙️ 종목 마스터 관리</h2>
+            <p style="font-size: 0.9em; color: #777;">계산기 리스트에 표시될 종목을 관리하세요.</p>
+            
+            <div class="add-stock-form">
+                <input type="text" id="new-stock-name" placeholder="새 종목명">
+                <input type="number" id="new-stock-annual" placeholder="연간 배당금(원)">
+                <button class="add-btn" onclick="addNewStockMaster()" style="width: auto; padding: 10px 20px;">추가</button>
+            </div>
+
+            <div class="stock-tag-list" id="stock-tag-list">
+                <!-- Stock tags will be generated here -->
+            </div>
         </div>
 
         <div class="section">
@@ -185,7 +231,8 @@
     </div>
 
     <script>
-        const stockData = {
+        // Default Data
+        const defaultStockData = {
             "삼성전자": { name: "삼성전자", annualDividend: 1444 },
             "삼성전자우": { name: "삼성전자우", annualDividend: 1445 },
             "SK하이닉스": { name: "SK하이닉스", annualDividend: 1200 },
@@ -209,8 +256,67 @@
             "KODEX 미국배당커버드콜액티브": { name: "KODEX 미국배당커버드콜액티브", annualDividend: 1176 }
         };
 
+        let stockData = JSON.parse(localStorage.getItem('myStockMaster')) || defaultStockData;
+
+        function saveStockMaster() {
+            localStorage.setItem('myStockMaster', JSON.stringify(stockData));
+            updateAllDropdowns();
+            renderStockMasterList();
+        }
+
+        function addNewStockMaster() {
+            const name = document.getElementById('new-stock-name').value.trim();
+            const annual = parseInt(document.getElementById('new-stock-annual').value) || 0;
+
+            if (!name) { alert("종목명을 입력하세요."); return; }
+            if (stockData[name]) { alert("이미 존재하는 종목입니다."); return; }
+
+            stockData[name] = { name: name, annualDividend: annual };
+            document.getElementById('new-stock-name').value = "";
+            document.getElementById('new-stock-annual').value = "";
+            saveStockMaster();
+        }
+
+        function deleteStockMaster(name) {
+            if (confirm(`'${name}' 종목을 마스터 리스트에서 삭제하시겠습니까?`)) {
+                delete stockData[name];
+                saveStockMaster();
+            }
+        }
+
+        function renderStockMasterList() {
+            const listContainer = document.getElementById('stock-tag-list');
+            listContainer.innerHTML = "";
+            Object.keys(stockData).forEach(name => {
+                const tag = document.createElement('div');
+                tag.className = 'stock-tag';
+                tag.innerHTML = `
+                    <span>${name} (${(stockData[name].annualDividend / 12).toFixed(0)}원/월)</span>
+                    <span class="del-icon" onclick="deleteStockMaster('${name}')">✕</span>
+                `;
+                listContainer.appendChild(tag);
+            });
+        }
+
+        function updateAllDropdowns() {
+            const dropdowns = document.querySelectorAll('.stock-select');
+            const optionsHTML = generateOptionsHTML();
+            dropdowns.forEach(dp => {
+                const currentVal = dp.value;
+                dp.innerHTML = optionsHTML;
+                dp.value = currentVal;
+            });
+        }
+
+        function generateOptionsHTML() {
+            let html = `<option value="">종목 선택 (직접입력 불가)</option>`;
+            Object.keys(stockData).forEach(stock => {
+                html += `<option value="${stock}">${stock}</option>`;
+            });
+            return html;
+        }
+
         const inputContainer = document.getElementById('calculator-inputs');
-        const stockOptions = Object.keys(stockData);
         let rowCount = 0;
 
         function addStockRow() {
@@ -219,15 +325,10 @@
             div.className = 'input-group';
             div.id = `row-${rowCount}`;
             
-            let optionsHTML = `<option value="">종목 선택 (직접입력 불가)</option>`;
-            stockOptions.forEach(stock => {
-                optionsHTML += `<option value="${stock}">${stock}</option>`;
-            });
-
             div.innerHTML = `
                 <label>${rowCount}</label>
                 <select class="stock-select" onchange="autoFillDividend(this)">
-                    ${optionsHTML}
+                    ${generateOptionsHTML()}
                 </select>
                 <input type="number" class="stock-qty" placeholder="수량(주)">
                 <input type="number" class="stock-monthly-div" placeholder="주당 월배당금(원)">
@@ -248,15 +349,15 @@
             
             if (stockName && stockData[stockName]) {
                 const annual = stockData[stockName].annualDividend;
-                // 월배당금으로 환산 (소수점 버림)
                 monthlyDivInput.value = Math.floor(annual / 12);
             } else {
                 monthlyDivInput.value = "";
             }
         }
 
-        // 초기 한 줄 추가
+        // Initialize
         addStockRow();
+        renderStockMasterList();
 
         function calculateUserDividends() {
             let totalAnnual = 0;
