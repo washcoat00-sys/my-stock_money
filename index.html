@@ -17,7 +17,7 @@
         }
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             background: white;
             padding: 40px;
             border-radius: 25px;
@@ -37,7 +37,7 @@
         }
         .input-group {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 12px;
             align-items: center;
             animation: fadeIn 0.3s ease;
@@ -50,6 +50,7 @@
             width: 25px;
             font-weight: bold;
             color: #b2e2f2; /* 파스텔 블루 */
+            text-align: center;
         }
         select, input {
             padding: 12px;
@@ -59,10 +60,15 @@
             font-size: 14px;
             transition: border-color 0.3s;
             outline: none;
+            min-width: 0;
         }
         select:focus, input:focus {
             border-color: #ffb7b2;
         }
+        .stock-select { flex: 1.5; }
+        .stock-qty { flex: 1; }
+        .stock-monthly-div { flex: 1; }
+
         .btn-container {
             display: flex;
             gap: 10px;
@@ -106,9 +112,10 @@
             margin-top: 20px;
         }
         th, td {
-            padding: 15px;
+            padding: 15px 10px;
             text-align: center;
             border: none;
+            font-size: 15px;
         }
         th {
             background-color: #fdfcf0;
@@ -142,9 +149,12 @@
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 5px 10px;
+            padding: 8px 12px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 13px;
+        }
+        .remove-btn:hover {
+            background: #ff9d97;
         }
     </style>
 </head>
@@ -152,7 +162,7 @@
     <div class="container">
         <div class="section">
             <h1>🌸 배당금 계산기</h1>
-            <p style="text-align: center; color: #888; margin-bottom: 30px;">원하는 종목을 추가하고 수량을 입력해 보세요!</p>
+            <p style="text-align: center; color: #888; margin-bottom: 30px;">종목을 선택하면 주당 월배당금이 자동 입력됩니다. (수정 가능)</p>
             
             <div id="calculator-inputs">
                 <!-- Inputs will be generated here -->
@@ -209,17 +219,18 @@
             div.className = 'input-group';
             div.id = `row-${rowCount}`;
             
-            let optionsHTML = `<option value="">종목 선택</option>`;
+            let optionsHTML = `<option value="">종목 선택 (직접입력 불가)</option>`;
             stockOptions.forEach(stock => {
                 optionsHTML += `<option value="${stock}">${stock}</option>`;
             });
 
             div.innerHTML = `
                 <label>${rowCount}</label>
-                <select class="stock-select">
+                <select class="stock-select" onchange="autoFillDividend(this)">
                     ${optionsHTML}
                 </select>
-                <input type="number" class="stock-qty" placeholder="수량 (주)">
+                <input type="number" class="stock-qty" placeholder="수량(주)">
+                <input type="number" class="stock-monthly-div" placeholder="주당 월배당금(원)">
                 <button class="remove-btn" onclick="removeRow(${rowCount})">삭제</button>
             `;
             inputContainer.appendChild(div);
@@ -228,6 +239,20 @@
         function removeRow(id) {
             const row = document.getElementById(`row-${id}`);
             if (row) row.remove();
+        }
+
+        function autoFillDividend(selectElement) {
+            const row = selectElement.closest('.input-group');
+            const monthlyDivInput = row.querySelector('.stock-monthly-div');
+            const stockName = selectElement.value;
+            
+            if (stockName && stockData[stockName]) {
+                const annual = stockData[stockName].annualDividend;
+                // 월배당금으로 환산 (소수점 버림)
+                monthlyDivInput.value = Math.floor(annual / 12);
+            } else {
+                monthlyDivInput.value = "";
+            }
         }
 
         // 초기 한 줄 추가
@@ -239,24 +264,27 @@
             const rows = document.querySelectorAll('.input-group');
 
             rows.forEach(row => {
-                const name = row.querySelector('.stock-select').value;
+                const nameSelect = row.querySelector('.stock-select');
+                let name = nameSelect.value;
                 const qty = parseInt(row.querySelector('.stock-qty').value) || 0;
+                const monthlyDiv = parseInt(row.querySelector('.stock-monthly-div').value) || 0;
 
-                if (name && qty > 0) {
-                    const data = stockData[name];
-                    const annual = data.annualDividend * qty;
-                    totalAnnual += annual;
+                if ((name || monthlyDiv > 0) && qty > 0) {
+                    const annualDiv = monthlyDiv * 12;
+                    const total = annualDiv * qty;
+                    totalAnnual += total;
                     results.push({
-                        name: name,
+                        name: name ? name : "직접입력(선택안함)",
                         qty: qty,
-                        unitDividend: data.annualDividend,
-                        total: annual
+                        monthlyDividend: monthlyDiv,
+                        annualDividend: annualDiv,
+                        total: total
                     });
                 }
             });
 
             if (results.length === 0) {
-                alert("종목과 수량을 입력해주세요.");
+                alert("종목(또는 배당금)과 수량을 입력해주세요.");
                 return;
             }
 
@@ -270,6 +298,7 @@
                     <tr>
                         <th>종목명</th>
                         <th>보유수량</th>
+                        <th>월배당금</th>
                         <th>연배당금</th>
                         <th>합계</th>
                     </tr>
@@ -280,7 +309,8 @@
                     <tr>
                         <td>${res.name}</td>
                         <td>${res.qty.toLocaleString()}주</td>
-                        <td>${res.unitDividend.toLocaleString()}원</td>
+                        <td>${res.monthlyDividend.toLocaleString()}원</td>
+                        <td>${res.annualDividend.toLocaleString()}원</td>
                         <td>${res.total.toLocaleString()}원</td>
                     </tr>
                 `;
@@ -314,7 +344,7 @@
                     <tr>
                         <th>종목명</th>
                         <th>추천 주식수</th>
-                        <th>월배당</th>
+                        <th>월배당금</th>
                         <th>합계</th>
                     </tr>
             `;
