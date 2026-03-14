@@ -87,14 +87,14 @@
         .add-btn {
             background-color: #b2e2f2; /* 파스텔 블루 */
             color: white;
-            width: 120px;
+            flex: 1; /* 균등 배분 */
         }
         .add-btn:hover { background-color: #92d2e2; }
         
         .calc-btn {
             background-color: #ffb7b2; /* 파스텔 핑크 */
             color: white;
-            flex: 1;
+            flex: 1; /* 균등 배분 */
         }
         .calc-btn:hover { background-color: #ff9d97; }
 
@@ -162,6 +162,18 @@
             border-radius: 20px;
             margin-top: 20px;
         }
+        .manage-content {
+            display: none; /* 기본 축소 상태 */
+            margin-top: 15px;
+        }
+        .toggle-btn {
+            background: #b2e2f2;
+            color: white;
+            width: 100%;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
         .stock-tag-list {
             display: flex;
             flex-wrap: wrap;
@@ -209,17 +221,21 @@
         </div>
 
         <div class="section manage-section">
-            <h2 style="margin-bottom: 10px; font-size: 1.5em; color: #b2e2f2;">⚙️ 종목 마스터 관리</h2>
-            <p style="font-size: 0.9em; color: #777;">계산기 리스트에 표시될 종목을 관리하세요.</p>
+            <button class="toggle-btn" id="manage-toggle" onclick="toggleManageSection()">⚙️ 종목 마스터 관리 (열기/닫기)</button>
             
-            <div class="add-stock-form">
-                <input type="text" id="new-stock-name" placeholder="새 종목명">
-                <input type="number" id="new-stock-annual" placeholder="연간 배당금(원)">
-                <button class="add-btn" onclick="addNewStockMaster()" style="width: auto; padding: 10px 20px;">추가</button>
-            </div>
+            <div class="manage-content" id="manage-content">
+                <h2 style="margin-bottom: 10px; font-size: 1.5em; color: #b2e2f2;">⚙️ 종목 마스터 관리</h2>
+                <p style="font-size: 0.9em; color: #777;">계산기 리스트에 표시될 종목을 관리하세요.</p>
+                
+                <div class="add-stock-form">
+                    <input type="text" id="new-stock-name" placeholder="새 종목명">
+                    <input type="number" id="new-stock-annual" placeholder="연간 배당금(원)">
+                    <button class="add-btn" onclick="addNewStockMaster()" style="padding: 10px 20px;">추가</button>
+                </div>
 
-            <div class="stock-tag-list" id="stock-tag-list">
-                <!-- Stock tags will be generated here -->
+                <div class="stock-tag-list" id="stock-tag-list">
+                    <!-- Stock tags will be generated here -->
+                </div>
             </div>
         </div>
 
@@ -257,6 +273,18 @@
         };
 
         let stockData = JSON.parse(localStorage.getItem('myStockMaster')) || defaultStockData;
+
+        function toggleManageSection() {
+            const content = document.getElementById('manage-content');
+            const toggleBtn = document.getElementById('manage-toggle');
+            if (content.style.display === "block") {
+                content.style.display = "none";
+                toggleBtn.innerText = "⚙️ 종목 마스터 관리 (열기)";
+            } else {
+                content.style.display = "block";
+                toggleBtn.innerText = "⚙️ 종목 마스터 관리 (닫기)";
+            }
+        }
 
         function saveStockMaster() {
             localStorage.setItem('myStockMaster', JSON.stringify(stockData));
