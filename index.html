@@ -114,6 +114,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
         }
         .nav-item:hover {
             background: var(--bg-color);
@@ -150,7 +151,7 @@
             padding: 40px;
             border-radius: 30px;
             box-shadow: 0 15px 40px rgba(0,0,0,0.05);
-            margin: 30px 0 60px 0;
+            margin: 30px 0 100px 0;
             position: relative;
             box-sizing: border-box;
         }
@@ -654,75 +655,282 @@
             if (results.length === 0) { alert("데이터를 입력해주세요."); return; }
 
             let resultHTML = `<div class="result-summary">
-                <h3>🌸 계산 결과</h3>
+                <h3 style="color: var(--header-color); margin-top: 0;">🌸 내 포트폴리오 결과</h3>
                 <p>연간 총 배당금: <strong>${totalAnnual.toLocaleString()}원</strong></p>
                 <p>월평균 배당금: <strong>${Math.floor(totalAnnual / 12).toLocaleString()}원</strong></p>
             </div>
-            <table><tr><th>종목</th><th>수량</th><th>월배당</th><th>합계</th></tr>`;
+            <table><tr><th>종목명</th><th>보유수량</th><th>월배당금</th><th>합계</th></tr>`;
             results.forEach(res => {
-                resultHTML += `<tr><td>${res.name}</td><td>${res.qty}</td><td>${res.monthlyDiv.toLocaleString()}</td><td>${res.total.toLocaleString()}</td></tr>`;
+                resultHTML += `<tr><td>${res.name}</td><td>${res.qty.toLocaleString()}주</td><td>${res.monthlyDiv.toLocaleString()}원</td><td>${res.total.toLocaleString()}원</td></tr>`;
             });
             document.getElementById('calc-result').innerHTML = resultHTML + "</table>";
         }
 
         function suggestAssetStrategy() {
             const age = parseInt(document.getElementById('user-age').value);
-            if (isNaN(age)) { alert("나이를 입력해주세요."); return; }
+            const realEstate = parseInt(document.getElementById('real-estate').value) || 0;
+            const movableAsset = parseInt(document.getElementById('movable-asset').value) || 0;
 
-            let roadmap = [
-                { year: "5년 뒤", desc: "자산 1.5배 증식 및 안정적 캐시플로우 확보" },
-                { year: "10년 뒤", desc: "주거 안정 및 금융 자산 비중 40% 달성" },
-                { year: "20년 뒤", desc: "배당금만으로 생활 가능한 경제적 자유" }
-            ];
+            if (isNaN(age)) {
+                alert("나이를 입력해주세요.");
+                return;
+            }
 
-            let resultHTML = `<div class="strategy-card">
-                <h3 style="color: var(--strategy-title);">🚀 ${age}세를 위한 맞춤 전략</h3>
-                <div class="roadmap-container">
-                    <div class="roadmap-title">🗺️ 향후 20년 로드맵</div>
-                    <div class="roadmap-grid">
-                        ${roadmap.map(r => `<div class="roadmap-item"><div class="roadmap-year">${r.year}</div><div class="roadmap-desc">${r.desc}</div></div>`).join('')}
+            const totalAsset = realEstate + movableAsset;
+            const reRatio = totalAsset > 0 ? (realEstate / totalAsset) * 100 : 0;
+            const maRatio = totalAsset > 0 ? (movableAsset / totalAsset) * 100 : 0;
+
+            let strategyTitle = "";
+            let strategyDesc = "";
+            let portfolio = [];
+            let keyPoints = [];
+            let roadmap = [];
+
+            if (age < 30) {
+                strategyTitle = "🚀 [사회초년생] 공격적 시드머니 구축 및 투자 습관 형성";
+                strategyDesc = "가장 강력한 무기인 '시간'을 활용할 때입니다. 소액이라도 꾸준히 우량 자산을 매집하는 경험이 중요합니다.";
+                portfolio = [
+                    { label: "해외 성장주 (Nasdaq, S&P500)", ratio: "80%" },
+                    { label: "암호화폐 및 대안자산", ratio: "10%" },
+                    { label: "현금 및 공부용 배당주", ratio: "10%" }
+                ];
+                keyPoints = [
+                    "소득의 50% 이상을 무조건 선저축/후지출하는 습관을 들이세요.",
+                    "ISA 계좌를 개설하여 절세 혜택을 100% 활용하세요.",
+                    "인적 자본(자기계발)에 대한 투자가 가장 높은 수익률을 줍니다."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (30대 초반)", desc: "결혼 또는 독립을 위한 시드머니 1억 달성 및 주거 안정성 검토 시작." },
+                    { year: "10년 뒤 (30대 후반)", desc: "내 집 마련(실거주) 성공 및 금융 자산 포트폴리오 3억 이상 확대." },
+                    { year: "20년 뒤 (40대 후반)", desc: "금융 자산에서 발생하는 배당금이 생활비의 50%를 초과하는 '반퇴' 준비." }
+                ];
+            } else if (age < 40) {
+                strategyTitle = "🔥 [30대] 자산 증식의 골든타임 및 주거 안정";
+                strategyDesc = "소득 상승기이자 지출 증가기입니다. 효율적인 자산 배분을 통해 안정성과 수익성을 동시에 잡아야 합니다.";
+                portfolio = [
+                    { label: "미국 성장주 및 테크주", ratio: "60%" },
+                    { label: "국내외 우량 배당주", ratio: "30%" },
+                    { label: "안전자산 (금, 채권)", ratio: "10%" }
+                ];
+                keyPoints = [
+                    "레버리지(대출)를 활용한 실거주 부동산 마련을 진지하게 고려하세요.",
+                    "연금저축펀드와 IRP를 통해 노후 준비와 연말정산 혜택을 동시에 챙기세요.",
+                    "자녀 교육비가 본격화되기 전에 자산의 체급을 최대한 키워야 합니다."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (40대 초반)", desc: "부동산 자산 가치 상승 및 대출 상환을 통한 순자산 비중 확대." },
+                    { year: "10년 뒤 (40대 후반)", desc: "금융 자산 5억 돌파 및 월 배당 현금흐름 150만원 달성." },
+                    { year: "20년 뒤 (50대 후반)", desc: "은퇴 전 마지막 자산 점검 및 안전 자산 비중 40%까지 확대." }
+                ];
+            } else if (age < 50) {
+                strategyTitle = "⚖️ [40대] 소득 정점기 및 현금흐름 다변화";
+                strategyDesc = "가장 많은 소득이 발생하는 시기입니다. 하지만 은퇴가 머지않았으므로 리스크 관리의 비중을 높여야 합니다.";
+                portfolio = [
+                    { label: "지수 추종 ETF (S&P500 등)", ratio: "40%" },
+                    { label: "배당 성장주 (SCHD 등)", ratio: "40%" },
+                    { label: "채권 및 고배당 커버드콜", ratio: "20%" }
+                ];
+                keyPoints = [
+                    "지나친 교육비 지출로 본인의 노후 자금이 잠식되지 않도록 선을 그으세요.",
+                    "퇴직금 운용 방식을 DC형으로 전환하여 직접 운용하는 것을 고려해 보세요.",
+                    "부동산 위주의 자산 구조를 금융 자산으로 점진적으로 리밸런싱하세요."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (50대 초반)", desc: "금융 자산 비중을 전체의 30% 이상으로 확보 및 소득 공백기 대비." },
+                    { year: "10년 뒤 (50대 후반)", desc: "월 현금흐름 300만원 포트폴리오 완성 및 주택연금 활용 계획 수립." },
+                    { year: "20년 뒤 (60대 후반)", desc: "안정적인 노후 자금 인출 전략(4% 룰) 실행 및 의료비 재원 확보." }
+                ];
+            } else if (age < 60) {
+                strategyTitle = "💰 [50대] 은퇴 브릿지 설계 및 원금 보존";
+                strategyDesc = "제2의 인생을 준비하는 시기입니다. 공격적인 수익보다는 생활비를 책임질 현금흐름이 최우선입니다.";
+                portfolio = [
+                    { label: "고배당주 및 리츠", ratio: "50%" },
+                    { label: "우량 채권 및 예금", ratio: "30%" },
+                    { label: "성장주 (인플레이션 방어)", ratio: "20%" }
+                ];
+                keyPoints = [
+                    "국민연금 수령 전까지의 '소득 절벽'을 배당금으로 메우는 전략이 핵심입니다.",
+                    "건강보험료 부담을 줄이기 위한 ISA 등의 비과세 계좌 활용을 극대화하세요.",
+                    "증여나 상속에 대한 기초 지식을 쌓고 미리 준비를 시작하세요."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (60대 초반)", desc: "완전한 은퇴 및 월 배당금+연금 소득 합계 400만원 시스템 가동." },
+                    { year: "10년 뒤 (60대 후반)", desc: "자산 관리의 단순화(ETF 위주) 및 활동적인 노후 생활비 집중 지출." },
+                    { year: "20년 뒤 (70대 후반)", desc: "의료비 및 요양 재원 확보, 자산의 안정적 증여 프로세스 완료." }
+                ];
+            } else {
+                strategyTitle = "🛡️ [60대 이상] 안락한 노후 유지 및 자산 인출";
+                strategyDesc = "지키는 것이 이기는 것입니다. 인플레이션에 따른 구매력 저하를 방어하며 편안하게 자산을 사용하세요.";
+                portfolio = [
+                    { label: "채권 및 금리형 상품", ratio: "50%" },
+                    { label: "배당 현금흐름 (월배당)", ratio: "40%" },
+                    { label: "지수형 ETF (보수적)", ratio: "10%" }
+                ];
+                keyPoints = [
+                    "주택연금을 가입하여 평생 거주권과 생활비를 확보하는 것을 추천합니다.",
+                    "갑작스러운 목돈 지출(수술 등)에 대비한 비상금 5,000만원 이상을 상시 보유하세요.",
+                    "자산 관리의 난이도를 낮추어 누구나 관리할 수 있도록 구조를 단순화하세요."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (70대 초반)", desc: "건강 상태에 따른 거주지 최적화(실버타운 등) 및 유동성 확보." },
+                    { year: "10년 뒤 (70대 후반)", desc: "상속세 재원 마련을 위한 현금화 및 유언장 등 법적 서류 정비." },
+                    { year: "20년 뒤 (80대 후반)", desc: "단순하고 명확한 자산 배분을 통한 심리적 평온함 유지." }
+                ];
+            }
+
+            if (reRatio > 80) keyPoints.push("⚠️ [주의] 부동산 비중이 지나치게 높습니다. 금융 자산 비중을 높여 유동성을 확보하세요.");
+            if (maRatio > 80 && totalAsset > 10000) keyPoints.push("⚠️ [주의] 금융 자산에만 편중되어 있습니다. 실물 자산 비중을 적절히 섞어 인플레이션을 방어하세요.");
+
+            let resultHTML = `
+                <div class="strategy-card">
+                    <h3 style="color: var(--strategy-title); margin-top: 0;">${strategyTitle}</h3>
+                    <p style="font-weight: 500; color: #555; line-height: 1.6; margin-bottom: 20px;">"${strategyDesc}"</p>
+                    
+                    <h4 style="margin-bottom: 10px; color: var(--header-color);">📊 추천 자산 배분 비율</h4>
+                    <table style="margin-bottom: 20px; border-spacing: 0; width: 100%;">
+                        ${portfolio.map(p => `
+                            <tr>
+                                <td style="text-align: left; padding: 10px; border-bottom: 1px solid var(--border-color);">${p.label}</td>
+                                <td style="text-align: right; padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--header-color);">${p.ratio}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+
+                    <h4 style="margin-bottom: 10px; color: var(--header-color);">💡 핵심 실행 전략</h4>
+                    <ul style="margin: 0 0 25px 0; padding-left: 20px; line-height: 1.7;">
+                        ${keyPoints.map(k => `<li>${k}</li>`).join('')}
+                    </ul>
+
+                    <div class="roadmap-container">
+                        <div class="roadmap-title">🗺️ 향후 자산 운영 로드맵</div>
+                        <div class="roadmap-grid">
+                            ${roadmap.map(r => `
+                                <div class="roadmap-item">
+                                    <div class="roadmap-year">${r.year}</div>
+                                    <div class="roadmap-desc">${r.desc}</div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
-            </div>`;
+            `;
             document.getElementById('strategy-result').innerHTML = resultHTML;
         }
 
         function showPortfolio() {
-            const capital = parseInt(document.getElementById('target-capital').value) * 10000 || 0;
-            const targetDiv = parseInt(document.getElementById('target-monthly-dividend').value) * 10000 || 0;
-            if (!capital && !targetDiv) { alert("자본금 또는 목표 배당금을 입력해주세요."); return; }
+            const capitalInput = parseInt(document.getElementById('target-capital').value) * 10000 || 0;
+            const targetDivInput = parseInt(document.getElementById('target-monthly-dividend').value) * 10000 || 0;
 
-            let resultHTML = `<div class="result-summary">
-                <h3 style="color: var(--label-color);">📊 맞춤 포트폴리오 분석</h3>
-                <p>시뮬레이션 결과 기반 추천 종목 구성을 확인하세요.</p>
-            </div>
-            <table><tr><th>종목</th><th>비중</th><th>예상월배당</th></tr>
-            <tr><td>TIGER 미국배당다우존스</td><td>40%</td><td>계산중...</td></tr>
-            <tr><td>KODEX 미국배당프리미엄</td><td>30%</td><td>계산중...</td></tr>
-            <tr><td>리츠/인프라 혼합</td><td>30%</td><td>계산중...</td></tr>
-            </table>`;
-            document.getElementById('portfolio-result').innerHTML = resultHTML;
+            const stocks = [
+                { name: "TIGER 미국배당다우존스", dividendPerMonth: 35, price: 11500, weight: 0.3 },
+                { name: "TIGER 미국테크TOP10+10%프리미엄", dividendPerMonth: 100, price: 12000, weight: 0.2 },
+                { name: "TIGER 리츠부동산인프라", dividendPerMonth: 30, price: 4500, weight: 0.2 },
+                { name: "SOL 미국배당다우존스", dividendPerMonth: 33, price: 11000, weight: 0.15 },
+                { name: "KODEX 미국배당프리미엄액티브", dividendPerMonth: 55, price: 10500, weight: 0.15 },
+            ];
+
+            let totalCapital = capitalInput;
+            let mode = "capital";
+
+            if (totalCapital === 0 && targetDivInput > 0) {
+                let avgDividendYield = 0;
+                stocks.forEach(s => { avgDividendYield += (s.dividendPerMonth / s.price) * s.weight; });
+                totalCapital = targetDivInput / avgDividendYield;
+                mode = "dividend";
+            }
+
+            if (totalCapital === 0) {
+                alert("자본금 또는 목표 배당금을 입력해주세요.");
+                return;
+            }
+
+            let calculatedStocks = stocks.map(stock => {
+                const allocatedCapital = totalCapital * stock.weight;
+                const shareCount = Math.floor(allocatedCapital / stock.price);
+                const monthlyTotal = shareCount * stock.dividendPerMonth;
+                const investment = shareCount * stock.price;
+                return { ...stock, shareCount, monthlyTotal, investment };
+            });
+
+            let finalTotalCapital = calculatedStocks.reduce((sum, s) => sum + s.investment, 0);
+            let finalTotalMonthly = calculatedStocks.reduce((sum, s) => sum + s.monthlyTotal, 0);
+
+            let gapInfo = "";
+            if (targetDivInput > 0) {
+                const diff = targetDivInput - finalTotalMonthly;
+                if (Math.abs(diff) > 1000) {
+                    if (capitalInput > 0 && finalTotalMonthly < targetDivInput) {
+                        gapInfo = `<div class="warning-text" style="background: rgba(211, 47, 47, 0.1); margin-bottom: 20px;">
+                            ⚠️ 알림: 입력하신 자본금으로는 목표 배당금 달성이 현실적으로 어렵습니다. 약 ${(targetDivInput / (finalTotalMonthly/finalTotalCapital) / 10000).toFixed(0).toLocaleString()}만원 이상의 자본금이 필요합니다.
+                        </div>`;
+                    }
+                }
+            }
+
+            let resultHTML = `
+                <div class="result-summary" style="background: var(--manage-section-bg); border-color: var(--label-color);">
+                    <h3 style="color: var(--label-color); margin-top: 0;">📊 맞춤 포트폴리오 분석 (${mode === 'capital' ? '자본금 기준' : '목표 배당 기준'})</h3>
+                    <p>총 투자 필요 자산: <strong>약 ${finalTotalCapital.toLocaleString()}원</strong></p>
+                    <p>예상 월 배당금: <strong>약 ${finalTotalMonthly.toLocaleString()}원</strong></p>
+                    <p style="font-size: 0.9em; color: #888; margin-top: 10px;">(연 예상 수익률: 약 ${((finalTotalMonthly * 12 / finalTotalCapital) * 100).toFixed(2)}%)</p>
+                </div>
+                ${gapInfo}
+                <table>
+                    <tr>
+                        <th>종목명</th>
+                        <th>추천 주식수</th>
+                        <th>투자금액</th>
+                        <th>월배당금</th>
+                    </tr>
+            `;
+
+            calculatedStocks.forEach(stock => {
+                if (stock.shareCount > 0) {
+                    resultHTML += `
+                        <tr>
+                            <td>${stock.name}</td>
+                            <td>${stock.shareCount.toLocaleString()}주</td>
+                            <td>${stock.investment.toLocaleString()}원</td>
+                            <td>${stock.monthlyTotal.toLocaleString()}원</td>
+                        </tr>
+                    `;
+                }
+            });
+            resultHTML += "</table>";
+            document.getElementById("portfolio-result").innerHTML = resultHTML;
         }
 
-        // Highlight active nav item on scroll
-        window.addEventListener('scroll', () => {
-            const sections = document.querySelectorAll('.section');
-            const navItems = document.querySelectorAll('.nav-item');
-            let current = "";
+        // Section highlighting logic
+        const sections = document.querySelectorAll('.section');
+        const navItems = document.querySelectorAll('.nav-item');
 
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (pageYOffset >= sectionTop - 120) {
-                    current = section.getAttribute('id');
+        const observerOptions = {
+            root: null,
+            rootMargin: '-150px 0px -70% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    // Special case for calculator-section because manage-section might interfere
+                    if (id === 'manage-section') return; 
+
+                    navItems.forEach(item => {
+                        item.classList.remove('active');
+                        if (item.getAttribute('href') === `#${id}`) {
+                            item.classList.add('active');
+                        }
+                    });
                 }
             });
+        }, observerOptions);
 
-            navItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('href').includes(current)) {
-                    item.classList.add('active');
-                }
-            });
+        sections.forEach(section => {
+            if (section.id !== 'manage-section') {
+                observer.observe(section);
+            }
         });
 
         // Init
