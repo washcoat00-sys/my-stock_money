@@ -22,6 +22,8 @@
             --btn-manage-hover: #d2e0bb;
             --btn-secondary-bg: #ffccbc;
             --btn-secondary-text: #5d4037;
+            --btn-reset-bg: #eeeeee;
+            --btn-reset-hover: #dddddd;
             --table-header-bg: #fdfcf0;
             --table-row-bg: #ffffff;
             --result-summary-bg: #fff5f5;
@@ -49,6 +51,8 @@
             --btn-manage-hover: #2e7d32;
             --btn-secondary-bg: #bf360c;
             --btn-secondary-text: #ffffff;
+            --btn-reset-bg: #444444;
+            --btn-reset-hover: #555555;
             --table-header-bg: #1a1a1a;
             --table-row-bg: #3d3d3d;
             --result-summary-bg: #3d2b2b;
@@ -186,6 +190,14 @@
             min-width: 120px;
         }
         .manage-btn:hover { background-color: var(--btn-manage-hover); }
+
+        .reset-btn {
+            background-color: var(--btn-reset-bg);
+            color: var(--text-color);
+            flex: 0.5;
+            min-width: 80px;
+        }
+        .reset-btn:hover { background-color: var(--btn-reset-hover); }
 
         .secondary-btn {
             background-color: var(--btn-secondary-bg);
@@ -353,6 +365,16 @@
             line-height: 1.5;
             color: var(--text-color);
         }
+        .warning-text {
+            color: #d32f2f;
+            font-size: 0.85em;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        [data-theme="dark"] .warning-text {
+            color: #ff8a80;
+        }
     </style>
 </head>
 <body>
@@ -370,6 +392,7 @@
                 <button class="add-btn" onclick="addStockRow()">➕ 종목 추가</button>
                 <button class="calc-btn" onclick="calculateUserDividends()">📊 종합 배당금 계산</button>
                 <button class="manage-btn" id="manage-toggle" onclick="toggleManageSection()">⚙️ 종목 마스터 관리</button>
+                <button class="reset-btn" onclick="resetCalculator()">🔄 리셋</button>
             </div>
 
             <div id="calc-result"></div>
@@ -402,7 +425,10 @@
                 <input type="number" id="real-estate" placeholder="부동산 자산 (만원)">
                 <input type="number" id="movable-asset" placeholder="금융 자산 (만원)">
             </div>
-            <button class="secondary-btn" onclick="suggestAssetStrategy()">제안 받기 💡</button>
+            <div class="btn-container">
+                <button class="secondary-btn" onclick="suggestAssetStrategy()" style="flex: 1;">제안 받기 💡</button>
+                <button class="reset-btn" onclick="resetStrategy()">🔄 리셋</button>
+            </div>
             <div id="strategy-result"></div>
         </div>
 
@@ -413,7 +439,11 @@
                 <input type="number" id="target-capital" placeholder="투자 가능 자본금 (만원)">
                 <input type="number" id="target-monthly-dividend" placeholder="목표 월 배당금 (만원)">
             </div>
-            <button class="secondary-btn" style="background-color: var(--btn-manage-bg); color: white;" onclick="showPortfolio()">포트폴리오 구성하기 ✨</button>
+            <div class="btn-container">
+                <button class="secondary-btn" style="background-color: var(--btn-manage-bg); color: white; flex: 1;" onclick="showPortfolio()">포트폴리오 구성하기 ✨</button>
+                <button class="reset-btn" onclick="resetPortfolio()">🔄 리셋</button>
+            </div>
+            <p class="warning-text">⚠️ AI 알고리즘 추천 결과로, 투자는 본인이 직접 신중하게 결정해야 합니다.</p>
             <div id="portfolio-result"></div>
         </div>
     </div>
@@ -569,6 +599,27 @@
             }
         }
 
+        // Reset Functions
+        function resetCalculator() {
+            inputContainer.innerHTML = "";
+            rowCount = 0;
+            addStockRow();
+            document.getElementById('calc-result').innerHTML = "";
+        }
+
+        function resetStrategy() {
+            document.getElementById('user-age').value = "";
+            document.getElementById('real-estate').value = "";
+            document.getElementById('movable-asset').value = "";
+            document.getElementById('strategy-result').innerHTML = "";
+        }
+
+        function resetPortfolio() {
+            document.getElementById('target-capital').value = "";
+            document.getElementById('target-monthly-dividend').value = "";
+            document.getElementById('portfolio-result').innerHTML = "";
+        }
+
         // Initialize
         addStockRow();
         renderStockMasterList();
@@ -675,6 +726,24 @@
             let finalTotalCapital = calculatedStocks.reduce((sum, s) => sum + s.investment, 0);
             let finalTotalMonthly = calculatedStocks.reduce((sum, s) => sum + s.monthlyTotal, 0);
 
+            // Analysis of gap
+            let gapInfo = "";
+            if (targetDivInput > 0) {
+                const diff = targetDivInput - finalTotalMonthly;
+                if (Math.abs(diff) > 1000) {
+                    if (capitalInput > 0 && finalTotalMonthly < targetDivInput) {
+                        gapInfo = `<div style="margin-top:15px; color: #d32f2f; font-weight: bold; background: #fffde7; padding: 10px; border-radius: 10px; border: 1px solid #ffe082;">
+                            ⚠️ 알림: 입력하신 자본금(${ (capitalInput/10000).toLocaleString() }만원)으로는 목표 배당금(${ (targetDivInput/10000).toLocaleString() }만원) 달성이 현실적으로 어렵습니다. 
+                            현재 추천 포트폴리오의 수익률 기준, 목표 달성을 위해서는 약 ${ (targetDivInput / (finalTotalMonthly/finalTotalCapital) / 10000).toFixed(0).toLocaleString() }만원 이상의 자본금이 필요할 것으로 예측됩니다.
+                        </div>`;
+                    } else if (mode === "dividend" && finalTotalMonthly < targetDivInput) {
+                        gapInfo = `<div style="margin-top:15px; color: #5d4037; background: #f1f8e9; padding: 10px; border-radius: 10px; border: 1px solid #c5e1a5;">
+                            💡 참고: 주식의 최소 단위(1주) 구매 제한으로 인해 실제 배당금액이 목표치와 약간의 차이가 발생할 수 있습니다.
+                        </div>`;
+                    }
+                }
+            }
+
             let resultHTML = `
                 <div class="result-summary" style="background: var(--manage-section-bg); border-color: var(--label-color);">
                     <h3 style="color: var(--label-color); margin-top: 0;">📊 맞춤 포트폴리오 분석 (${mode === 'capital' ? '자본금 기준' : '목표 배당 기준'})</h3>
@@ -682,6 +751,7 @@
                     <p>예상 월 배당금: <strong>약 ${finalTotalMonthly.toLocaleString()}원</strong></p>
                     <p style="font-size: 0.9em; color: #888; margin-top: 10px;">(연 예상 수익률: 약 ${((finalTotalMonthly * 12 / finalTotalCapital) * 100).toFixed(2)}%)</p>
                 </div>
+                ${gapInfo}
                 <table>
                     <tr>
                         <th>종목명</th>
