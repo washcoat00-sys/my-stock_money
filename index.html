@@ -5,27 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌸 파스텔 배당금 계산기</title>
     <style>
+        :root {
+            --bg-color: #fdfcf0; /* 부드러운 크림색 */
+            --container-bg: #ffffff;
+            --text-color: #4a4a4a;
+            --header-color: #ffb7b2; /* 파스텔 핑크 */
+            --label-color: #b2e2f2; /* 파스텔 블루 */
+            --border-color: #f1f3f4;
+            --input-border: #f1f3f4;
+            --input-focus: #ffb7b2;
+            --btn-add-bg: #b2e2f2;
+            --btn-add-hover: #92d2e2;
+            --btn-calc-bg: #ffb7b2;
+            --btn-calc-hover: #ff9d97;
+            --btn-manage-bg: #e2f0cb; /* 파스텔 그린 */
+            --btn-manage-hover: #d2e0bb;
+            --btn-secondary-bg: #ffccbc;
+            --btn-secondary-text: #5d4037;
+            --table-header-bg: #fdfcf0;
+            --table-row-bg: #ffffff;
+            --result-summary-bg: #fff5f5;
+            --result-summary-border: #ffe4e1;
+            --manage-section-bg: #f0faff;
+            --card-bg: #ffffff;
+            --strategy-border: #ffccbc;
+            --strategy-title: #e64a19;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --container-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --header-color: #ff8a80;
+            --label-color: #81d4fa;
+            --border-color: #444444;
+            --input-border: #444444;
+            --input-focus: #ff8a80;
+            --btn-add-bg: #0288d1;
+            --btn-add-hover: #0277bd;
+            --btn-calc-bg: #d32f2f;
+            --btn-calc-hover: #c62828;
+            --btn-manage-bg: #388e3c;
+            --btn-manage-hover: #2e7d32;
+            --btn-secondary-bg: #bf360c;
+            --btn-secondary-text: #ffffff;
+            --table-header-bg: #1a1a1a;
+            --table-row-bg: #3d3d3d;
+            --result-summary-bg: #3d2b2b;
+            --result-summary-border: #5d4037;
+            --manage-section-bg: #1e262b;
+            --card-bg: #3d3d3d;
+            --strategy-border: #bf360c;
+            --strategy-title: #ffab91;
+        }
+
         body {
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: #fdfcf0; /* 부드러운 크림색 */
-            color: #4a4a4a;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            box-shadow: none;
+        }
+        .theme-toggle:hover {
+            transform: rotate(30deg);
         }
         .container {
             width: 100%;
             max-width: 850px;
-            background: white;
+            background: var(--container-bg);
             padding: 40px;
             border-radius: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             margin-bottom: 30px;
+            position: relative;
         }
         h1, h2 {
-            color: #ffb7b2; /* 파스텔 핑크 */
+            color: var(--header-color);
             text-align: center;
             font-weight: 800;
             margin-bottom: 30px;
@@ -33,7 +109,7 @@
         .section {
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 2px dashed #f1f3f4;
+            border-bottom: 2px dashed var(--border-color);
         }
         .input-group {
             display: flex;
@@ -49,21 +125,23 @@
         .input-group label {
             width: 25px;
             font-weight: bold;
-            color: #b2e2f2; /* 파스텔 블루 */
+            color: var(--label-color);
             text-align: center;
         }
         select, input {
             padding: 12px;
-            border: 2px solid #f1f3f4;
+            border: 2px solid var(--input-border);
             border-radius: 12px;
             flex: 1;
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, background-color 0.3s, color 0.3s;
             outline: none;
             min-width: 0;
+            background-color: var(--container-bg);
+            color: var(--text-color);
         }
         select:focus, input:focus {
-            border-color: #ffb7b2;
+            border-color: var(--input-focus);
         }
         .stock-select { flex: 1.5; }
         .stock-qty { flex: 1; }
@@ -73,6 +151,7 @@
             display: flex;
             gap: 10px;
             margin-top: 20px;
+            flex-wrap: wrap;
         }
         button {
             padding: 15px;
@@ -85,25 +164,34 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         .add-btn {
-            background-color: #b2e2f2; /* 파스텔 블루 */
+            background-color: var(--btn-add-bg);
             color: white;
             flex: 1; /* 균등 배분 */
+            min-width: 120px;
         }
-        .add-btn:hover { background-color: #92d2e2; }
+        .add-btn:hover { background-color: var(--btn-add-hover); }
         
         .calc-btn {
-            background-color: #ffb7b2; /* 파스텔 핑크 */
+            background-color: var(--btn-calc-bg);
             color: white;
             flex: 1; /* 균등 배분 */
+            min-width: 120px;
         }
-        .calc-btn:hover { background-color: #ff9d97; }
+        .calc-btn:hover { background-color: var(--btn-calc-hover); }
+
+        .manage-btn {
+            background-color: var(--btn-manage-bg);
+            color: white;
+            flex: 1;
+            min-width: 120px;
+        }
+        .manage-btn:hover { background-color: var(--btn-manage-hover); }
 
         .secondary-btn {
-            background-color: #e2f0cb; /* 파스텔 그린 */
-            color: #666;
+            background-color: var(--btn-secondary-bg);
+            color: var(--btn-secondary-text);
             width: 100%;
         }
-        .secondary-btn:hover { background-color: #d2e0bb; }
 
         table {
             width: 100%;
@@ -116,27 +204,29 @@
             text-align: center;
             border: none;
             font-size: 15px;
+            transition: background-color 0.3s, color 0.3s;
         }
         th {
-            background-color: #fdfcf0;
+            background-color: var(--table-header-bg);
             color: #888;
             font-weight: 600;
         }
         td {
-            background-color: #fff;
-            border-top: 1px solid #f1f3f4;
-            border-bottom: 1px solid #f1f3f4;
+            background-color: var(--table-row-bg);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
         }
-        tr td:first-child { border-left: 1px solid #f1f3f4; border-radius: 12px 0 0 12px; }
-        tr td:last-child { border-right: 1px solid #f1f3f4; border-radius: 0 12px 12px 0; }
+        tr td:first-child { border-left: 1px solid var(--border-color); border-radius: 12px 0 0 12px; }
+        tr td:last-child { border-right: 1px solid var(--border-color); border-radius: 0 12px 12px 0; }
 
         .result-summary {
-            background: #fff5f5;
+            background: var(--result-summary-bg);
             padding: 25px;
             border-radius: 20px;
             margin-top: 25px;
             text-align: center;
-            border: 2px solid #ffe4e1;
+            border: 2px solid var(--result-summary-border);
+            transition: all 0.3s;
         }
         .stock-list-info {
             font-size: 0.85em;
@@ -145,7 +235,7 @@
             text-align: center;
         }
         .remove-btn {
-            background: #ffb7b2;
+            background: var(--btn-calc-bg);
             color: white;
             border: none;
             border-radius: 8px;
@@ -154,25 +244,18 @@
             font-size: 13px;
         }
         .remove-btn:hover {
-            background: #ff9d97;
+            background: var(--btn-calc-hover);
         }
         .manage-section {
-            background: #f0faff;
+            background: var(--manage-section-bg);
             padding: 20px;
             border-radius: 20px;
             margin-top: 20px;
+            transition: background-color 0.3s;
         }
         .manage-content {
             display: none; /* 기본 축소 상태 */
             margin-top: 15px;
-        }
-        .toggle-btn {
-            background: #b2e2f2;
-            color: white;
-            width: 100%;
-            padding: 10px;
-            border-radius: 12px;
-            font-size: 14px;
         }
         .stock-tag-list {
             display: flex;
@@ -181,7 +264,7 @@
             margin-top: 15px;
         }
         .stock-tag {
-            background: white;
+            background: var(--card-bg);
             padding: 8px 15px;
             border-radius: 12px;
             display: flex;
@@ -189,9 +272,10 @@
             gap: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             font-size: 14px;
+            transition: background-color 0.3s, color 0.3s;
         }
         .stock-tag .del-icon {
-            color: #ffb7b2;
+            color: var(--header-color);
             cursor: pointer;
             font-weight: bold;
         }
@@ -209,17 +293,18 @@
             flex: 1;
         }
         .strategy-card {
-            background: #fff;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 15px;
-            border-left: 5px solid #ffccbc;
+            border-left: 5px solid var(--strategy-border);
             margin-top: 20px;
             text-align: left;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s;
         }
         .strategy-card h4 {
             margin-top: 0;
-            color: #e64a19;
+            color: var(--strategy-title);
         }
         .strategy-card ul {
             padding-left: 20px;
@@ -228,9 +313,50 @@
         .strategy-card li {
             margin-bottom: 8px;
         }
+        .roadmap-container {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed var(--border-color);
+        }
+        .roadmap-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--header-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .roadmap-item {
+            background: var(--bg-color);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s;
+        }
+        .roadmap-item:hover {
+            transform: translateY(-5px);
+        }
+        .roadmap-year {
+            font-weight: 800;
+            color: var(--label-color);
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        .roadmap-desc {
+            font-size: 0.85em;
+            line-height: 1.5;
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="테마 전환">☀️</button>
     <div class="container">
         <div class="section">
             <h1>🌸 배당금 계산기</h1>
@@ -243,9 +369,29 @@
             <div class="btn-container">
                 <button class="add-btn" onclick="addStockRow()">➕ 종목 추가</button>
                 <button class="calc-btn" onclick="calculateUserDividends()">📊 종합 배당금 계산</button>
+                <button class="manage-btn" id="manage-toggle" onclick="toggleManageSection()">⚙️ 종목 마스터 관리</button>
             </div>
 
             <div id="calc-result"></div>
+        </div>
+
+        <div class="manage-content-container">
+            <div class="section manage-section" id="manage-section" style="display: none;">
+                <div class="manage-content" id="manage-content" style="display: block;">
+                    <h2 style="margin-bottom: 10px; font-size: 1.5em; color: var(--label-color);">⚙️ 종목 마스터 관리</h2>
+                    <p style="font-size: 0.9em; color: #777;">계산기 리스트에 표시될 종목을 관리하세요.</p>
+                    
+                    <div class="add-stock-form">
+                        <input type="text" id="new-stock-name" placeholder="새 종목명">
+                        <input type="number" id="new-stock-annual" placeholder="연간 배당금(원)">
+                        <button class="add-btn" onclick="addNewStockMaster()" style="padding: 10px 20px; flex: 0 0 auto;">추가</button>
+                    </div>
+
+                    <div class="stock-tag-list" id="stock-tag-list">
+                        <!-- Stock tags will be generated here -->
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="section">
@@ -256,37 +402,32 @@
                 <input type="number" id="real-estate" placeholder="부동산 자산 (만원)">
                 <input type="number" id="movable-asset" placeholder="금융 자산 (만원)">
             </div>
-            <button class="secondary-btn" style="background-color: #ffccbc; color: #5d4037;" onclick="suggestAssetStrategy()">제안 받기 💡</button>
+            <button class="secondary-btn" onclick="suggestAssetStrategy()">제안 받기 💡</button>
             <div id="strategy-result"></div>
-        </div>
-
-        <div class="section manage-section">
-            <button class="toggle-btn" id="manage-toggle" onclick="toggleManageSection()">⚙️ 종목 마스터 관리 (열기/닫기)</button>
-            
-            <div class="manage-content" id="manage-content">
-                <h2 style="margin-bottom: 10px; font-size: 1.5em; color: #b2e2f2;">⚙️ 종목 마스터 관리</h2>
-                <p style="font-size: 0.9em; color: #777;">계산기 리스트에 표시될 종목을 관리하세요.</p>
-                
-                <div class="add-stock-form">
-                    <input type="text" id="new-stock-name" placeholder="새 종목명">
-                    <input type="number" id="new-stock-annual" placeholder="연간 배당금(원)">
-                    <button class="add-btn" onclick="addNewStockMaster()" style="padding: 10px 20px;">추가</button>
-                </div>
-
-                <div class="stock-tag-list" id="stock-tag-list">
-                    <!-- Stock tags will be generated here -->
-                </div>
-            </div>
         </div>
 
         <div class="section">
             <h2>🏆 월배당 추천 포트폴리오</h2>
-            <button class="secondary-btn" onclick="showPortfolio()">추천 포트폴리오 보기 ✨</button>
+            <button class="secondary-btn" style="background-color: var(--btn-manage-bg); color: white;" onclick="showPortfolio()">추천 포트폴리오 보기 ✨</button>
             <div id="portfolio-result"></div>
         </div>
     </div>
 
     <script>
+        // Theme Management
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            document.getElementById('theme-toggle').innerText = newTheme === 'dark' ? '🌙' : '☀️';
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-toggle').innerText = savedTheme === 'dark' ? '🌙' : '☀️';
+
         // Default Data
         const defaultStockData = {
             "삼성전자": { name: "삼성전자", annualDividend: 1444 },
@@ -315,14 +456,14 @@
         let stockData = JSON.parse(localStorage.getItem('myStockMaster')) || defaultStockData;
 
         function toggleManageSection() {
-            const content = document.getElementById('manage-content');
+            const section = document.getElementById('manage-section');
             const toggleBtn = document.getElementById('manage-toggle');
-            if (content.style.display === "block") {
-                content.style.display = "none";
-                toggleBtn.innerText = "⚙️ 종목 마스터 관리 (열기)";
+            if (section.style.display === "block") {
+                section.style.display = "none";
+                toggleBtn.classList.remove('active');
             } else {
-                content.style.display = "block";
-                toggleBtn.innerText = "⚙️ 종목 마스터 관리 (닫기)";
+                section.style.display = "block";
+                toggleBtn.classList.add('active');
             }
         }
 
@@ -550,94 +691,144 @@
             let strategyDesc = "";
             let portfolio = [];
             let keyPoints = [];
+            let roadmap = [];
 
-            if (age < 40) {
-                strategyTitle = "🚀 [2030세대] 공격적 자산 형성 및 복리 극대화";
-                strategyDesc = "인적 자본 가치가 가장 높은 시기로, 장기적인 복리 효과를 누리기 위해 변동성을 감내하는 공격적 투자가 필요합니다.";
+            if (age < 30) {
+                strategyTitle = "🚀 [사회초년생] 공격적 시드머니 구축 및 투자 습관 형성";
+                strategyDesc = "가장 강력한 무기인 '시간'을 활용할 때입니다. 소액이라도 꾸준히 우량 자산을 매집하는 경험이 중요합니다.";
                 portfolio = [
-                    { label: "해외 성장주 (Nasdaq 100, S&P 500)", ratio: "70%" },
-                    { label: "국내 우량 배당주 및 리츠", ratio: "20%" },
-                    { label: "현금 및 비상금 (CMA, 파킹통장)", ratio: "10%" }
+                    { label: "해외 성장주 (Nasdaq, S&P500)", ratio: "80%" },
+                    { label: "암호화폐 및 대안자산", ratio: "10%" },
+                    { label: "현금 및 공부용 배당주", ratio: "10%" }
                 ];
                 keyPoints = [
-                    "절세 계좌(ISA, 연금저축펀드) 한도를 최우선으로 채워 과세이연 효과를 극대화하세요.",
-                    "하락장에서도 흔들리지 않는 적립식 매수(Dollar Cost Averaging) 전략을 유지하세요.",
-                    "부동산은 무리한 대출보다는 청약 가점 관리와 실거주 1주택 마련을 위한 '시드머니' 조성에 집중할 때입니다."
+                    "소득의 50% 이상을 무조건 선저축/후지출하는 습관을 들이세요.",
+                    "ISA 계좌를 개설하여 절세 혜택을 100% 활용하세요.",
+                    "인적 자본(자기계발)에 대한 투자가 가장 높은 수익률을 줍니다."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (30대 초반)", desc: "결혼 또는 독립을 위한 시드머니 1억 달성 및 주거 안정성 검토 시작." },
+                    { year: "10년 뒤 (30대 후반)", desc: "내 집 마련(실거주) 성공 및 금융 자산 포트폴리오 3억 이상 확대." },
+                    { year: "20년 뒤 (40대 후반)", desc: "금융 자산에서 발생하는 배당금이 생활비의 50%를 초과하는 '반퇴' 준비." }
+                ];
+            } else if (age < 40) {
+                strategyTitle = "🔥 [30대] 자산 증식의 골든타임 및 주거 안정";
+                strategyDesc = "소득 상승기이자 지출 증가기입니다. 효율적인 자산 배분을 통해 안정성과 수익성을 동시에 잡아야 합니다.";
+                portfolio = [
+                    { label: "미국 성장주 및 테크주", ratio: "60%" },
+                    { label: "국내외 우량 배당주", ratio: "30%" },
+                    { label: "안전자산 (금, 채권)", ratio: "10%" }
+                ];
+                keyPoints = [
+                    "레버리지(대출)를 활용한 실거주 부동산 마련을 진지하게 고려하세요.",
+                    "연금저축펀드와 IRP를 통해 노후 준비와 연말정산 혜택을 동시에 챙기세요.",
+                    "자녀 교육비가 본격화되기 전에 자산의 체급을 최대한 키워야 합니다."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (40대 초반)", desc: "부동산 자산 가치 상승 및 대출 상환을 통한 순자산 비중 확대." },
+                    { year: "10년 뒤 (40대 후반)", desc: "금융 자산 5억 돌파 및 월 배당 현금흐름 150만원 달성." },
+                    { year: "20년 뒤 (50대 후반)", desc: "은퇴 전 마지막 자산 점검 및 안전 자산 비중 40%까지 확대." }
                 ];
             } else if (age < 50) {
-                strategyTitle = "⚖️ [40대] 자산 증식과 포트폴리오 다변화";
-                strategyDesc = "소득이 정점에 달하는 시기입니다. 자산 성장을 지속하면서도 일부 수익을 안전 자산으로 전환하는 균형 잡힌 전략이 필요합니다.";
+                strategyTitle = "⚖️ [40대] 소득 정점기 및 현금흐름 다변화";
+                strategyDesc = "가장 많은 소득이 발생하는 시기입니다. 하지만 은퇴가 머지않았으므로 리스크 관리의 비중을 높여야 합니다.";
                 portfolio = [
-                    { label: "성장형 ETF (미국 테크주 등)", ratio: "50%" },
-                    { label: "배당 성장주 (미국배당다우존스 등)", ratio: "30%" },
-                    { label: "채권 및 안전자산", ratio: "20%" }
+                    { label: "지수 추종 ETF (S&P500 등)", ratio: "40%" },
+                    { label: "배당 성장주 (SCHD 등)", ratio: "40%" },
+                    { label: "채권 및 고배당 커버드콜", ratio: "20%" }
                 ];
                 keyPoints = [
-                    "자녀 교육자금 등 목돈 지출에 대비하면서도 본인의 은퇴 자산이 잠식되지 않도록 관리하세요.",
-                    "IRP(개인형 퇴직연금)를 통해 세액공제 혜택을 챙기고, 퇴직금 운용 지시를 직접 관리(DC형)하세요.",
-                    "부동산 자산의 비중이 너무 크다면 리츠(REITs) 투자를 통해 부동산 수익을 배당 형태로 분산해 보세요."
+                    "지나친 교육비 지출로 본인의 노후 자금이 잠식되지 않도록 선을 그으세요.",
+                    "퇴직금 운용 방식을 DC형으로 전환하여 직접 운용하는 것을 고려해 보세요.",
+                    "부동산 위주의 자산 구조를 금융 자산으로 점진적으로 리밸런싱하세요."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (50대 초반)", desc: "금융 자산 비중을 전체의 30% 이상으로 확보 및 소득 공백기 대비." },
+                    { year: "10년 뒤 (50대 후반)", desc: "월 현금흐름 300만원 포트폴리오 완성 및 주택연금 활용 계획 수립." },
+                    { year: "20년 뒤 (60대 후반)", desc: "안정적인 노후 자금 인출 전략(4% 룰) 실행 및 의료비 재원 확보." }
                 ];
             } else if (age < 60) {
-                strategyTitle = "💰 [50대] 현금흐름 창출 및 위험 관리";
-                strategyDesc = "은퇴가 가시권에 들어오는 시기입니다. 원금 보존보다는 매월 발생하는 '현금흐름(Cash Flow)' 규모를 키우는 데 집중해야 합니다.";
+                strategyTitle = "💰 [50대] 은퇴 브릿지 설계 및 원금 보존";
+                strategyDesc = "제2의 인생을 준비하는 시기입니다. 공격적인 수익보다는 생활비를 책임질 현금흐름이 최우선입니다.";
                 portfolio = [
-                    { label: "고배당주 및 커버드콜 ETF", ratio: "40%" },
-                    { label: "우량 채권 및 금리형 상품", ratio: "40%" },
-                    { label: "성장주 (지수 투자)", ratio: "20%" }
+                    { label: "고배당주 및 리츠", ratio: "50%" },
+                    { label: "우량 채권 및 예금", ratio: "30%" },
+                    { label: "성장주 (인플레이션 방어)", ratio: "20%" }
                 ];
                 keyPoints = [
-                    "국민연금 수령 전까지의 '소득 공백기(Bridge Period)'를 메울 수 있는 월배당 포트폴리오를 완성하세요.",
-                    "증여세 등을 고려한 자산 이전 계획을 미리 검토하고, 가족 전체의 자산 구조를 최적화해야 합니다.",
-                    "보장성 보험 리모델링을 통해 노후 의료비 지출 리스크를 방어하세요."
+                    "국민연금 수령 전까지의 '소득 절벽'을 배당금으로 메우는 전략이 핵심입니다.",
+                    "건강보험료 부담을 줄이기 위한 ISA 등의 비과세 계좌 활용을 극대화하세요.",
+                    "증여나 상속에 대한 기초 지식을 쌓고 미리 준비를 시작하세요."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (60대 초반)", desc: "완전한 은퇴 및 월 배당금+연금 소득 합계 400만원 시스템 가동." },
+                    { year: "10년 뒤 (60대 후반)", desc: "자산 관리의 단순화(ETF 위주) 및 활동적인 노후 생활비 집중 지출." },
+                    { year: "20년 뒤 (70대 후반)", desc: "의료비 및 요양 재원 확보, 자산의 안정적 증여 프로세스 완료." }
                 ];
             } else {
-                strategyTitle = "🛡️ [60대 이상] 자산 보존 및 안정적 노후 생활";
-                strategyDesc = "지키는 투자가 최우선입니다. 인플레이션을 방어하면서도 안정적인 생활비를 인출할 수 있는 구조가 핵심입니다.";
+                strategyTitle = "🛡️ [60대 이상] 안락한 노후 유지 및 자산 인출";
+                strategyDesc = "지키는 것이 이기는 것입니다. 인플레이션에 따른 구매력 저하를 방어하며 편안하게 자산을 사용하세요.";
                 portfolio = [
-                    { label: "채권 및 예금성 자산", ratio: "50%" },
-                    { label: "현금흐름형 배당주", ratio: "30%" },
-                    { label: "지수형 ETF", ratio: "20%" }
+                    { label: "채권 및 금리형 상품", ratio: "50%" },
+                    { label: "배당 현금흐름 (월배당)", ratio: "40%" },
+                    { label: "지수형 ETF (보수적)", ratio: "10%" }
                 ];
                 keyPoints = [
-                    "주택연금을 적극 활용하여 거주 문제 해결과 생활비 확보를 동시에 달성하는 것을 권장합니다.",
-                    "변동성이 큰 개별 종목 투자는 지양하고, 지수 추종형(ETF) 또는 자산배분형 상품으로 단순화하세요.",
-                    "상속 시 발생할 수 있는 부동산 급매 리스크에 대비해 상속세 납부 재원(현금)을 미리 마련해 두세요."
+                    "주택연금을 가입하여 평생 거주권과 생활비를 확보하는 것을 추천합니다.",
+                    "갑작스러운 목돈 지출(수술 등)에 대비한 비상금 5,000만원 이상을 상시 보유하세요.",
+                    "자산 관리의 난이도를 낮추어 누구나 관리할 수 있도록 구조를 단순화하세요."
+                ];
+                roadmap = [
+                    { year: "5년 뒤 (70대 초반)", desc: "건강 상태에 따른 거주지 최적화(실버타운 등) 및 유동성 확보." },
+                    { year: "10년 뒤 (70대 후반)", desc: "상속세 재원 마련을 위한 현금화 및 유언장 등 법적 서류 정비." },
+                    { year: "20년 뒤 (80대 후반)", desc: "단순하고 명확한 자산 배분을 통한 심리적 평온함 유지." }
                 ];
             }
 
             // 자산 구조에 따른 추가 조언
             if (reRatio > 80) {
-                keyPoints.push("⚠️ [주의] 부동산 비중이 지나치게 높습니다(House Poor 위험). 급격한 경기 변동 시 유동성 위기가 올 수 있으므로 금융 자산 비중을 20% 이상으로 높이는 리밸런싱이 시급합니다.");
+                keyPoints.push("⚠️ [주의] 부동산 비중이 지나치게 높습니다. 급매가 어려운 부동산 특성상 유동성 위기가 올 수 있으므로 금융 자산 비중을 높이세요.");
             }
             if (maRatio > 80 && totalAsset > 10000) {
-                keyPoints.push("⚠️ [주의] 실물 자산 없이 금융 자산에만 편중되어 있습니다. 화폐 가치 하락(인플레이션)에 대비해 리츠나 실물 자산 비중을 일부 확보하는 것이 안전합니다.");
+                keyPoints.push("⚠️ [주의] 화폐 가치 하락에 대비하여 실물 자산(부동산, 금)이나 주식 비중을 적절히 섞어 인플레이션을 방어하세요.");
             }
 
             let resultHTML = `
                 <div class="strategy-card">
-                    <h3 style="color: #e64a19; margin-top: 0;">${strategyTitle}</h3>
+                    <h3 style="color: var(--strategy-title); margin-top: 0;">${strategyTitle}</h3>
                     <p style="font-weight: 500; color: #555; line-height: 1.6; margin-bottom: 20px;">"${strategyDesc}"</p>
                     
-                    <h4 style="margin-bottom: 10px; color: #ff8a65;">📊 추천 자산 배분 비율</h4>
+                    <h4 style="margin-bottom: 10px; color: var(--header-color);">📊 추천 자산 배분 비율</h4>
                     <table style="margin-bottom: 20px; border-spacing: 0; width: 100%;">
                         ${portfolio.map(p => `
                             <tr>
-                                <td style="text-align: left; padding: 10px; border-bottom: 1px solid #eee;">${p.label}</td>
-                                <td style="text-align: right; padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; color: #ff7043;">${p.ratio}</td>
+                                <td style="text-align: left; padding: 10px; border-bottom: 1px solid var(--border-color);">${p.label}</td>
+                                <td style="text-align: right; padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--header-color);">${p.ratio}</td>
                             </tr>
                         `).join('')}
                     </table>
 
-                    <h4 style="margin-bottom: 10px; color: #ff8a65;">💡 핵심 실행 전략</h4>
-                    <ul style="margin: 0; padding-left: 20px; line-height: 1.7;">
+                    <h4 style="margin-bottom: 10px; color: var(--header-color);">💡 핵심 실행 전략</h4>
+                    <ul style="margin: 0 0 25px 0; padding-left: 20px; line-height: 1.7;">
                         ${keyPoints.map(k => `<li>${k}</li>`).join('')}
                     </ul>
+
+                    <div class="roadmap-container">
+                        <div class="roadmap-title">🗺️ 향후 자산 운영 로드맵</div>
+                        <div class="roadmap-grid">
+                            ${roadmap.map(r => `
+                                <div class="roadmap-item">
+                                    <div class="roadmap-year">${r.year}</div>
+                                    <div class="roadmap-desc">${r.desc}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
                     
-                    <div style="margin-top: 25px; padding: 15px; background: #fff3e0; border-radius: 12px; font-size: 0.85em; color: #795548;">
+                    <div style="margin-top: 25px; padding: 15px; background: var(--manage-section-bg); border-radius: 12px; font-size: 0.85em;">
                         <strong>총 자산 규모(${totalAsset.toLocaleString()}만원) 진단:</strong> 
-                        현재 귀하의 자산은 부동산 ${reRatio.toFixed(1)}%, 금융 ${maRatio.toFixed(1)}%로 구성되어 있습니다. 
-                        ${age >= 50 ? "은퇴 후 현금흐름 확보를 위해" : "자산의 효율적 증식을 위해"} 
-                        지속적인 포트폴리오 점검이 필요합니다.
+                        부동산 ${reRatio.toFixed(1)}%, 금융 ${maRatio.toFixed(1)}% 구성. 
+                        현 상황에서 가장 시급한 것은 ${reRatio > 70 ? '금융 자산의 확대' : '균형 잡힌 자산 증식'}입니다.
                     </div>
                     <p style="margin-top: 15px; font-size: 0.8em; color: #999; text-align: center;">* 위 제안은 일반적인 통계와 원칙에 기반한 것으로, 실제 투자는 본인의 책임하에 진행하시기 바랍니다.</p>
                 </div>
